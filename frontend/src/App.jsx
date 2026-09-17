@@ -25,6 +25,7 @@ import PreparationHub from './pages/student/PreparationHub';
 import ProfilePage from './pages/student/ProfilePage';
 import MyInternshipPage from './pages/student/MyInternshipPage';
 import FinalSubmissionPage from './pages/student/FinalSubmissionPage';
+import DigitalRecordPage from './pages/student/DigitalRecordPage';
 
 // Interview pages
 import InterviewList from './pages/interviews/InterviewList';
@@ -91,8 +92,7 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/my-internship" element={<MyInternshipPage />} />
               <Route path="/final-submission" element={<FinalSubmissionPage />} />
-
-              {/* Interview routes */}
+              <Route path="/internship-record" element={<DigitalRecordPage />} />
               <Route path="/interviews" element={<InterviewList />} />
               <Route path="/interviews/:id" element={<InterviewDetail />} />
 

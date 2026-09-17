@@ -35,6 +35,8 @@ const internshipRecordSchema = new mongoose.Schema(
     roleTitle: { type: String },
     skillsGained: [{ type: String }],
     certificateUrl: { type: String },
+    // Overall progress (averaged from milestones)
+    progressPercent: { type: Number, min: 0, max: 100, default: 0 },
   },
   { timestamps: true }
 );

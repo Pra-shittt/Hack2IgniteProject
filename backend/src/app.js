@@ -20,6 +20,7 @@ const milestoneRoutes = require('./routes/milestoneRoutes');
 const weeklyReportRoutes = require('./routes/weeklyReportRoutes');
 const monitoringRoutes = require('./routes/monitoringRoutes');
 const finalSubmissionRoutes = require('./routes/finalSubmissionRoutes');
+const digitalRecordRoutes = require('./routes/digitalRecordRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/milestones', milestoneRoutes);
 app.use('/api/weekly-reports', weeklyReportRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/final-submissions', finalSubmissionRoutes);
+app.use('/api/digital-record', digitalRecordRoutes);
 
 // 404
 app.use('/{*path}', (req, res) => {

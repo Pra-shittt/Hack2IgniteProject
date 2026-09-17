@@ -66,6 +66,21 @@ npm run dev
 
 App runs at **http://localhost:5173**
 
+### 🔑 Demo Logins (Pre-seeded)
+
+Run `npm run seed` inside `backend` to populate the database with realistic demo data and the following accounts (Password for all: `Password123!`):
+
+| Role | Email | Password | What You Can Test |
+|---|---|---|---|
+| **Student** | `student@demo.com` | `Password123!` | Marketplace, Apply, Submit Reports, Milestones, Digital Record |
+| **Recruiter** | `recruiter@demo.com` | `Password123!` | Post Internships, View Applications, Issue Offers, Schedule Interviews |
+| **TPO Admin** | `tpo@demo.com` | `Password123!` | Approval Center (NOC), Early Warning Monitoring, Final Approvals |
+| **College Mentor** | `college.mentor@demo.com` | `Password123!` | Track Assigned Students, Performance Monitoring, Recommendations |
+| **Company Mentor** | `company.mentor@demo.com` | `Password123!` | Review & Verify Weekly Reports, Milestone Tracking, Final Evaluation |
+
+> **Note:** You can also register your own **Student**, **Recruiter**, or **Company Mentor** account directly on the `/register` page. TPO and College Mentor roles are seeded for security.
+
+
 ## 📦 Environment Variables
 
 ### Backend (`backend/.env`)

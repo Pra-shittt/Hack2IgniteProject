@@ -17,15 +17,15 @@ export default function InterviewWorkspace() {
   useEffect(() => {
     if (!containerRef.current || !roomData) return;
 
-    const { roomId, userId, userName, zegoAppId } = roomData;
+    const { roomId, userId, userName, zegoAppId, zegoServerSecret } = roomData;
+    const serverSecret = zegoServerSecret || import.meta.env.VITE_ZEGO_SERVER_SECRET || '';
 
-    if (!zegoAppId) {
+    if (!zegoAppId || !serverSecret) {
       // Show placeholder if ZEGO not configured
       return;
     }
 
-    const appID = zegoAppId;
-    const serverSecret = ''; // Token should come from backend in production
+    const appID = Number(zegoAppId);
     const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
       appID,
       serverSecret,
@@ -68,9 +68,10 @@ export default function InterviewWorkspace() {
     );
   }
 
-  const { zegoAppId, roomId, userName } = roomData;
+  const { zegoAppId, zegoServerSecret, roomId, userName } = roomData;
+  const serverSecret = zegoServerSecret || import.meta.env.VITE_ZEGO_SERVER_SECRET || '';
 
-  if (!zegoAppId) {
+  if (!zegoAppId || !serverSecret) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', flexDirection: 'column' }}>
         {/* Header bar */}

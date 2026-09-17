@@ -135,6 +135,7 @@ const joinInterview = async (req, res, next) => {
         userId,
         userName: req.user.name,
         zegoAppId: zegoAppId ? Number(zegoAppId) : null,
+        zegoServerSecret: zegoServerSecret || null,
         zegoToken,
         interviewId: interview._id,
       },

@@ -6,7 +6,7 @@ export default function ApprovalCenterPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('PENDING');
   const [processing, setProcessing] = useState(null);
-  const [modal, setModal] = useState(null); // { approval }
+  const [modal, setModal] = useState(null);
   const [form, setForm] = useState({ status: 'APPROVED', remarks: '', collegeMentorId: '', companyMentorId: '' });
   const [mentors, setMentors] = useState([]);
 
@@ -56,153 +56,300 @@ export default function ApprovalCenterPage() {
     setForm({ status: 'APPROVED', remarks: '', collegeMentorId: '', companyMentorId: '' });
   };
 
-  const statusBadge = (s) => {
-    const map = { PENDING: 'bg-amber-100 text-amber-700', APPROVED: 'bg-green-100 text-green-700', REJECTED: 'bg-red-100 text-red-700' };
-    return map[s] || 'bg-gray-100 text-gray-700';
+  const getStatusBadge = (s) => {
+    if (s === 'APPROVED') return { bg: '#dcfce7', color: '#15803d', border: '#bbf7d0', label: 'Approved' };
+    if (s === 'REJECTED') return { bg: '#fee2e2', color: '#b91c1c', border: '#fecaca', label: 'Rejected' };
+    return { bg: '#fef3c7', color: '#b45309', border: '#fde68a', label: 'Pending' };
   };
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1200px', margin: '0 auto', paddingBottom: '3rem' }}>
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Approval Center & NOC</h1>
-        <p className="text-gray-500 mt-1">Review internship offers, issue NOC, and activate internships.</p>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', margin: '0 0 0.35rem 0' }}>Approval Center & NOC</h1>
+        <p style={{ color: '#6b7280', fontSize: '0.95rem', margin: 0 }}>
+          Review student internship offers, issue official college NOC, and assign academic and industry mentors.
+        </p>
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-2">
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              filter === f ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}>
-            {f.charAt(0) + f.slice(1).toLowerCase()}
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '0.75rem',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: filter === f ? 'none' : '1px solid #d1d5db',
+              background: filter === f ? '#4f46e5' : '#ffffff',
+              color: filter === f ? '#ffffff' : '#4b5563',
+              boxShadow: filter === f ? '0 4px 10px rgba(79, 70, 229, 0.25)' : 'none',
+              transition: 'all 0.15s'
+            }}
+          >
+            {f === 'ALL' ? 'All Requests' : f.charAt(0) + f.slice(1).toLowerCase()}
           </button>
         ))}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Approvals Table Card */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '1.25rem',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        overflow: 'hidden'
+      }}>
         {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '14rem' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              border: '3px solid #e0e7ff',
+              borderTopColor: '#4f46e5',
+              animation: 'spin 1s linear infinite'
+            }} />
           </div>
         ) : approvals.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-5xl mb-3">📋</div>
-            <p className="font-medium">No {filter.toLowerCase()} approvals</p>
+          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#9ca3af' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>📋</div>
+            <p style={{ fontWeight: 600, fontSize: '1rem', margin: 0 }}>No {filter.toLowerCase()} approvals found</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {['Student', 'Internship', 'Stipend', 'Joining Date', 'Status', 'Action'].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {approvals.map(a => (
-                <tr key={a._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <p className="font-medium text-gray-900">{a.studentId?.name}</p>
-                    <p className="text-xs text-gray-500">{a.studentId?.email}</p>
-                  </td>
-                  <td className="px-5 py-4">
-                    <p className="text-sm font-medium text-gray-800">{a.internshipId?.title}</p>
-                    <p className="text-xs text-gray-500">{a.internshipId?.duration} • {a.internshipId?.location || 'Remote'}</p>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">₹{a.offerId?.stipend?.toLocaleString() || '—'}/mo</td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
-                    {a.offerId?.joiningDate ? new Date(a.offerId.joiningDate).toLocaleDateString() : '—'}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusBadge(a.status)}`}>{a.status}</span>
-                    {a.nocIssued && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">NOC ✓</span>}
-                  </td>
-                  <td className="px-5 py-4">
-                    {a.status === 'PENDING' ? (
-                      <button onClick={() => openModal(a)}
-                        className="text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors">
-                        Review →
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-400">{a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString() : '—'}</span>
-                    )}
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '760px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Internship & Company</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stipend</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Joining Date</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Approval & NOC</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {approvals.map(a => {
+                  const badge = getStatusBadge(a.status);
+                  return (
+                    <tr key={a._id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s' }}>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <p style={{ fontWeight: 700, color: '#1e293b', margin: '0 0 0.15rem 0', fontSize: '0.92rem' }}>{a.studentId?.name || 'Student'}</p>
+                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>{a.studentId?.email}</p>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <p style={{ fontWeight: 600, color: '#334155', margin: '0 0 0.15rem 0', fontSize: '0.9rem' }}>{a.internshipId?.title || 'Internship'}</p>
+                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+                          {a.internshipId?.duration || '12 weeks'} • {a.internshipId?.location || 'Remote'}
+                        </p>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.9rem', fontWeight: 600, color: '#1e293b' }}>
+                        ₹{a.offerId?.stipend ? a.offerId.stipend.toLocaleString() : '—'}/mo
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#475569' }}>
+                        {a.offerId?.joiningDate ? new Date(a.offerId.joiningDate).toLocaleDateString('en-IN') : 'Immediate'}
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{
+                            padding: '0.3rem 0.75rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            background: badge.bg,
+                            color: badge.color,
+                            border: `1px solid ${badge.border}`
+                          }}>
+                            {badge.label}
+                          </span>
+                          {a.nocIssued && (
+                            <span style={{
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              border: '1px solid #bfdbfe'
+                            }}>
+                              NOC Issued ✓
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        {a.status === 'PENDING' ? (
+                          <button
+                            onClick={() => openModal(a)}
+                            style={{
+                              background: '#4f46e5',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '0.45rem 1rem',
+                              borderRadius: '0.6rem',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 5px rgba(79, 70, 229, 0.2)'
+                            }}
+                          >
+                            Review & Issue NOC →
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                            {a.reviewedAt ? new Date(a.reviewedAt).toLocaleDateString('en-IN') : 'Processed'}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* Review Modal */}
+      {/* Review & NOC Modal */}
       {modal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Review Offer — {modal.approval.studentId?.name}</h2>
-              <p className="text-sm text-gray-500 mt-1">{modal.approval.internshipId?.title}</p>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.55)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '1.25rem',
+            width: '100%',
+            maxWidth: '560px',
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)',
+            overflow: 'hidden'
+          }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827', margin: '0 0 0.25rem 0' }}>
+                Review Offer — {modal.approval.studentId?.name}
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                {modal.approval.internshipId?.title}
+              </p>
             </div>
-            <div className="p-6 space-y-4">
-              {/* Offer Summary */}
-              <div className="bg-gray-50 rounded-xl p-4 text-sm space-y-2">
-                <div className="flex justify-between"><span className="text-gray-500">Stipend</span><span className="font-medium">₹{modal.approval.offerId?.stipend?.toLocaleString()}/mo</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Duration</span><span className="font-medium">{modal.approval.offerId?.duration}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Location</span><span className="font-medium">{modal.approval.offerId?.location || 'Remote'}</span></div>
-                {modal.approval.offerId?.joiningDate && (
-                  <div className="flex justify-between"><span className="text-gray-500">Joining Date</span><span className="font-medium">{new Date(modal.approval.offerId.joiningDate).toLocaleDateString()}</span></div>
-                )}
+
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              <div style={{
+                background: '#f1f5f9',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                fontSize: '0.85rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>Offered Monthly Stipend</span>
+                  <strong style={{ color: '#111827' }}>₹{modal.approval.offerId?.stipend?.toLocaleString() || 'Unpaid'}/mo</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>Expected Joining Date</span>
+                  <strong style={{ color: '#111827' }}>
+                    {modal.approval.offerId?.joiningDate ? new Date(modal.approval.offerId.joiningDate).toLocaleDateString('en-IN') : 'Immediate'}
+                  </strong>
+                </div>
               </div>
 
-              {/* Decision */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Decision</label>
-                <div className="flex gap-3">
-                  {['APPROVED', 'REJECTED'].map(s => (
-                    <button key={s} onClick={() => setForm(f => ({ ...f, status: s }))}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-colors ${
-                        form.status === s
-                          ? s === 'APPROVED' ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-400 bg-red-50 text-red-700'
-                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                      }`}>
-                      {s === 'APPROVED' ? '✓ Approve & Issue NOC' : '✕ Reject'}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Approval Decision
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {['APPROVED', 'REJECTED'].map(st => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, status: st }))}
+                      style={{
+                        flex: 1,
+                        padding: '0.65rem',
+                        borderRadius: '0.6rem',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        border: form.status === st ? 'none' : '1px solid #d1d5db',
+                        background: form.status === st ? (st === 'APPROVED' ? '#16a34a' : '#dc2626') : '#f9fafb',
+                        color: form.status === st ? '#ffffff' : '#4b5563'
+                      }}
+                    >
+                      {st === 'APPROVED' ? '✓ Approve & Issue NOC' : '✕ Reject'}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Assign mentors on approval */}
-              {form.status === 'APPROVED' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Company Mentor ID <span className="text-gray-400">(optional)</span></label>
-                  <input type="text" value={form.companyMentorId}
-                    onChange={e => setForm(f => ({ ...f, companyMentorId: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none"
-                    placeholder="Paste company mentor user ID" />
-                  <p className="text-xs text-gray-400 mt-1">Can be assigned later from Internship Records</p>
-                </div>
-              )}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Assign College Faculty Mentor
+                </label>
+                <select
+                  value={form.collegeMentorId}
+                  onChange={e => setForm(f => ({ ...f, collegeMentorId: e.target.value }))}
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '0.6rem', border: '1px solid #d1d5db', fontSize: '0.85rem', background: '#fff' }}
+                >
+                  <option value="">-- Select Faculty Mentor --</option>
+                  {mentors.map(m => (
+                    <option key={m._id} value={m._id}>{m.name} ({m.department || 'CSE / IT'})</option>
+                  ))}
+                </select>
+              </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Remarks <span className="text-gray-400">(optional)</span></label>
-                <textarea rows={3} value={form.remarks}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  TPO Remarks / NOC Endorsement
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.remarks}
                   onChange={e => setForm(f => ({ ...f, remarks: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none"
-                  placeholder="Any notes for the student or record..." />
+                  placeholder="Official endorsement remarks or guidelines for the student..."
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '0.6rem', border: '1px solid #d1d5db', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                />
               </div>
-            </div>
-            <div className="p-6 pt-0 flex gap-3">
-              <button onClick={handleReview} disabled={!!processing}
-                className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-colors disabled:opacity-50 ${
-                  form.status === 'APPROVED' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'
-                }`}>
-                {processing ? 'Processing…' : form.status === 'APPROVED' ? 'Approve & Issue NOC' : 'Reject'}
-              </button>
-              <button onClick={() => setModal(null)}
-                className="px-5 py-2.5 rounded-xl text-sm text-gray-600 border border-gray-200 hover:bg-gray-50">
-                Cancel
-              </button>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setModal(null)}
+                  style={{ flex: 1, padding: '0.75rem', borderRadius: '0.6rem', border: '1px solid #d1d5db', background: '#ffffff', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReview}
+                  disabled={processing}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '0.6rem',
+                    border: 'none',
+                    background: form.status === 'APPROVED' ? '#4f46e5' : '#dc2626',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    cursor: processing ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {processing ? 'Processing…' : 'Submit Decision'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

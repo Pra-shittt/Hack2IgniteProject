@@ -48,13 +48,14 @@ export default function ProfilePage() {
     const fd = new FormData();
     fd.append('resume', file);
     try {
-      await api.post('/users/profile/resume', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post('/users/profile/resume', fd);
       await refreshProfile();
-      toast.success('Resume uploaded!');
+      toast.success('Resume uploaded successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      if (e.target) e.target.value = '';
     }
   };
 

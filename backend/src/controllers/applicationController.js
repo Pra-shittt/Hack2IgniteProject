@@ -31,7 +31,7 @@ const applyToInternship = async (req, res, next) => {
 
     // If file uploaded with this request, upload it
     if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, 'resumes');
+      const result = await uploadToCloudinary(req.file.buffer, 'resumes', 'raw', req.file.originalname);
       resumeUrl = result.secure_url;
     }
 

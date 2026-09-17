@@ -32,140 +32,265 @@ export default function CompletionReviewPage() {
       setSelected(null);
       fetchSubmissions();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed');
+      alert(err.response?.data?.message || 'Failed to update approval');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const stepColors = {
-    SUBMITTED: 'bg-blue-100 text-blue-700',
-    COMPANY_EVALUATED: 'bg-purple-100 text-purple-700',
-    COLLEGE_REVIEWED: 'bg-amber-100 text-amber-700',
-    TPO_APPROVED: 'bg-green-100 text-green-700',
-    COMPLETED: 'bg-emerald-100 text-emerald-700',
+  const getStepBadge = (s) => {
+    const map = {
+      SUBMITTED: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+      COMPANY_EVALUATED: { bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe' },
+      COLLEGE_REVIEWED: { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
+      TPO_APPROVED: { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+      COMPLETED: { bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' },
+    };
+    return map[s] || { bg: '#f3f4f6', color: '#4b5563', border: '#e5e7eb' };
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          border: '3px solid #e0e7ff',
+          borderTopColor: '#4f46e5',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1200px', margin: '0 auto', paddingBottom: '3rem' }}>
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Completion Review</h1>
-        <p className="text-gray-500 mt-1">Final approval of internship completion and digital records.</p>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', margin: '0 0 0.35rem 0' }}>Completion Review & Sign-Off</h1>
+        <p style={{ color: '#6b7280', fontSize: '0.95rem', margin: 0 }}>
+          Final approval of student internship projects, generating verified digital completion records.
+        </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Submissions Card */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '1.25rem',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        overflow: 'hidden'
+      }}>
         {submissions.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-5xl mb-3">🏆</div>
-            <p>No final submissions yet.</p>
+          <div style={{ textAlign: 'center', padding: '4.5rem 1rem', color: '#9ca3af' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>🏆</div>
+            <p style={{ fontWeight: 600, fontSize: '1rem', margin: 0 }}>No final submissions awaiting TPO review yet.</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {['Student', 'Summary', 'Company Eval', 'College Review', 'Status', 'Action'].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {submissions.map(s => (
-                <tr key={s._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <p className="font-medium text-gray-900">{s.studentId?.name}</p>
-                    <p className="text-xs text-gray-500">{s.studentId?.email}</p>
-                  </td>
-                  <td className="px-5 py-4 max-w-[200px]">
-                    <p className="text-sm text-gray-600 line-clamp-2">{s.projectSummary}</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {s.skillsLearned?.slice(0, 3).map(sk => (
-                        <span key={sk} className="text-xs bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{sk}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    {s.companyEvaluation?.overallRating ? (
-                      <span className="text-amber-500 font-bold">{s.companyEvaluation.overallRating}★</span>
-                    ) : <span className="text-gray-300">—</span>}
-                  </td>
-                  <td className="px-5 py-4">
-                    {s.collegeMentorReview?.recommendation ? (
-                      <p className="text-xs text-gray-600 line-clamp-2">{s.collegeMentorReview.recommendation}</p>
-                    ) : <span className="text-gray-300 text-sm">Pending</span>}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${stepColors[s.status]}`}>
-                      {s.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    {s.status === 'COLLEGE_REVIEWED' ? (
-                      <button onClick={() => setSelected(s)}
-                        className="text-sm text-indigo-600 font-medium hover:text-indigo-800">
-                        Approve →
-                      </button>
-                    ) : s.status === 'COMPLETED' ? (
-                      <span className="text-green-600 text-sm font-medium">✓ Complete</span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">Awaiting…</span>
-                    )}
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '780px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Student</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Project Summary</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Company Eval</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Faculty Review</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Current Stage</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {submissions.map(s => {
+                  const badge = getStepBadge(s.status);
+                  return (
+                    <tr key={s._id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s' }}>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <p style={{ fontWeight: 700, color: '#1e293b', margin: '0 0 0.2rem 0', fontSize: '0.92rem' }}>
+                          {s.studentId?.name || 'Student'}
+                        </p>
+                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>{s.studentId?.email}</p>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem', maxWidth: '280px' }}>
+                        <p style={{
+                          fontSize: '0.85rem',
+                          color: '#475569',
+                          margin: '0 0 0.35rem 0',
+                          lineHeight: 1.4,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {s.projectSummary}
+                        </p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                          {s.skillsLearned?.slice(0, 3).map(sk => (
+                            <span key={sk} style={{ fontSize: '0.7rem', background: '#eef2ff', color: '#4338ca', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>
+                              {sk}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem', textAlign: 'center' }}>
+                        {s.companyEvaluation?.overallRating ? (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', background: '#fffbeb', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', border: '1px solid #fde68a', color: '#b45309', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <span>★</span> {s.companyEvaluation.overallRating}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#cbd5e1' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        {s.collegeMentorReview?.recommendation ? (
+                          <p style={{ fontSize: '0.82rem', color: '#334155', margin: 0, fontStyle: 'italic', maxWidth: '180px' }}>
+                            "{s.collegeMentorReview.recommendation}"
+                          </p>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Pending Review</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <span style={{
+                          padding: '0.3rem 0.75rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          background: badge.bg,
+                          color: badge.color,
+                          border: `1px solid ${badge.border}`
+                        }}>
+                          {s.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        {s.status === 'COLLEGE_REVIEWED' ? (
+                          <button
+                            onClick={() => setSelected(s)}
+                            style={{
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '0.45rem 1rem',
+                              borderRadius: '0.6rem',
+                              fontSize: '0.82rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)'
+                            }}
+                          >
+                            Final Approval →
+                          </button>
+                        ) : s.status === 'COMPLETED' ? (
+                          <span style={{ color: '#16a34a', fontSize: '0.85rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            ✓ Completed
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                            {s.status === 'TPO_APPROVED' ? 'Finalizing' : 'Awaiting Review'}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* Approval Modal */}
+      {/* TPO Decision Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Final Approval</h2>
-              <p className="text-sm text-gray-500 mt-1">{selected.studentId?.name}</p>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem'
+        }}>
+          <div style={{ background: '#ffffff', borderRadius: '1.25rem', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '1.5rem', background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#111827', margin: '0 0 0.25rem 0' }}>
+                TPO Final Internship Approval
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Candidate: <strong>{selected.studentId?.name}</strong>
+              </p>
             </div>
-            <div className="p-6 space-y-4">
+
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Decision</label>
-                <div className="flex gap-3">
-                  {['APPROVED', 'CORRECTION_REQUIRED'].map(s => (
-                    <button key={s} onClick={() => setForm(f => ({ ...f, status: s }))}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium border-2 transition-colors ${
-                        form.status === s
-                          ? s === 'APPROVED' ? 'border-green-500 bg-green-50 text-green-700' : 'border-amber-400 bg-amber-50 text-amber-700'
-                          : 'border-gray-200 text-gray-600'
-                      }`}>
-                      {s === 'APPROVED' ? '✓ Approve & Complete' : '⚠ Request Correction'}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
+                  Institutional Sign-Off Decision
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {['APPROVED', 'CORRECTION_REQUIRED'].map(st => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, status: st }))}
+                      style={{
+                        flex: 1,
+                        padding: '0.75rem',
+                        borderRadius: '0.6rem',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        border: form.status === st ? 'none' : '1px solid #d1d5db',
+                        background: form.status === st ? (st === 'APPROVED' ? '#16a34a' : '#f59e0b') : '#f8fafc',
+                        color: form.status === st ? '#ffffff' : '#4b5563'
+                      }}
+                    >
+                      {st === 'APPROVED' ? '🏆 Approve & Issue Record' : '⚠️ Request Revision'}
                     </button>
                   ))}
                 </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-                <textarea rows={3} value={form.remarks}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Institutional Endorsement Remarks
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.remarks}
                   onChange={e => setForm(f => ({ ...f, remarks: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none"
-                  placeholder="Final remarks for the student's digital record..." />
+                  placeholder="Official completion endorsement and performance remarks..."
+                  style={{ width: '100%', padding: '0.65rem', borderRadius: '0.6rem', border: '1px solid #d1d5db', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                />
               </div>
-            </div>
-            <div className="p-6 pt-0 flex gap-3">
-              <button onClick={handleApprove} disabled={submitting}
-                className={`flex-1 py-2.5 rounded-xl font-medium text-sm disabled:opacity-50 transition-colors ${
-                  form.status === 'APPROVED' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-amber-500 text-white hover:bg-amber-600'
-                }`}>
-                {submitting ? 'Processing…' : form.status === 'APPROVED' ? '🏆 Approve & Complete' : 'Send for Correction'}
-              </button>
-              <button onClick={() => setSelected(null)}
-                className="px-5 py-2.5 rounded-xl text-sm text-gray-600 border border-gray-200 hover:bg-gray-50">
-                Cancel
-              </button>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  style={{ flex: 1, padding: '0.75rem', borderRadius: '0.6rem', border: '1px solid #d1d5db', background: '#fff', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApprove}
+                  disabled={submitting}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '0.6rem',
+                    border: 'none',
+                    background: form.status === 'APPROVED' ? '#16a34a' : '#f59e0b',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    cursor: submitting ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {submitting ? 'Submitting…' : form.status === 'APPROVED' ? 'Confirm Approval' : 'Send for Revision'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

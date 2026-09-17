@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Internship = require('../models/Internship');
 const Application = require('../models/Application');
 const StudentProfile = require('../models/StudentProfile');
@@ -52,6 +53,9 @@ const getInternships = async (req, res, next) => {
 // GET /api/internships/:id
 const getInternship = async (req, res, next) => {
   try {
+    if (!req.params.id || !mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Internship not found', code: 'NOT_FOUND' });
+    }
     const internship = await Internship.findById(req.params.id).populate('companyId', 'name logoUrl location industry website description');
     if (!internship) return res.status(404).json({ success: false, message: 'Internship not found', code: 'NOT_FOUND' });
 

@@ -51,7 +51,19 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
+
+    // Auto-seed demo accounts on-demand if a demo user is requested but not yet in DB
+    if (!user && email && email.endsWith('@demo.com')) {
+      try {
+        const seedScript = require('../scripts/seedDemoHelper');
+        await seedScript();
+        user = await User.findOne({ email });
+      } catch (seedErr) {
+        console.warn('Auto-seed demo attempt:', seedErr.message);
+      }
+    }
+
     if (!user || !user.isActive) {
       return res.status(401).json({ success: false, message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' });
     }

@@ -38,24 +38,25 @@ export default function FinalSubmissionPage() {
     try {
       setSubmitting(true);
       setError('');
-      await api.post('/final-submissions', {
-        internshipRecordId: record._id,
-        projectSummary: form.projectSummary,
-        skillsLearned: form.skillsLearned.split(',').map(s => s.trim()).filter(Boolean),
-        finalReportUrl: form.finalReportUrl || undefined,
-        presentationUrl: form.presentationUrl || undefined,
-        certificateUrl: form.certificateUrl || undefined,
+      const skills = form.skillsLearned
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const res = await api.post('/final-submissions', {
+        ...form,
+        skillsLearned: skills,
       });
-      fetchData();
+      setSubmission(res.data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Submission failed');
+      setError(err.response?.data?.message || 'Failed to submit final work');
     } finally {
       setSubmitting(false);
     }
   };
 
   const statusSteps = [
-    { key: 'SUBMITTED', label: 'Submitted', icon: '📤' },
+    { key: 'SUBMITTED', label: 'Submitted', icon: '📝' },
     { key: 'COMPANY_EVALUATED', label: 'Company Evaluated', icon: '🏢' },
     { key: 'COLLEGE_REVIEWED', label: 'College Reviewed', icon: '🎓' },
     { key: 'TPO_APPROVED', label: 'TPO Approved', icon: '✅' },
@@ -66,77 +67,177 @@ export default function FinalSubmissionPage() {
     ? statusSteps.findIndex(s => s.key === submission.status)
     : -1;
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          border: '3px solid #e0e7ff',
+          borderTopColor: '#4f46e5',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
+    );
+  }
 
-  if (!record) return (
-    <div className="text-center py-20">
-      <div className="text-6xl mb-4">🎓</div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Internship</h2>
-      <p className="text-gray-500">You need an active internship to submit final work.</p>
-    </div>
-  );
+  if (!record) {
+    return (
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <div style={{ fontSize: '3.75rem', marginBottom: '1rem' }}>🎓</div>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.5rem' }}>No Active Internship</h2>
+        <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>You need an active internship record to submit your final work.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Final Submission</h1>
-        <p className="text-gray-500 mt-1">Submit your final internship work for evaluation and completion.</p>
+    <div style={{ maxWidth: '820px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
+      {/* Header Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+        borderRadius: '1.25rem',
+        padding: '2rem',
+        color: '#ffffff',
+        boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.3)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.75rem', borderRadius: '9999px', display: 'inline-block', marginBottom: '0.75rem' }}>
+              Final Evaluation & Completion
+            </span>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Final Internship Submission</h1>
+            <p style={{ color: '#e0e7ff', marginTop: '0.5rem', fontSize: '0.95rem', margin: '0.5rem 0 0 0' }}>
+              Submit your work, presentation, and achievements for evaluation by your Company Mentor, College Mentor, and TPO.
+            </p>
+          </div>
+          {submission && (
+            <div style={{
+              background: '#ffffff',
+              color: '#4f46e5',
+              padding: '0.5rem 1.25rem',
+              borderRadius: '9999px',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+            }}>
+              Status: {submission.status}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Progress Steps */}
+      {/* Progress Timeline */}
       {submission && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Completion Progress</h2>
-          <div className="flex items-center gap-0">
-            {statusSteps.map((step, idx) => (
-              <div key={step.key} className="flex items-center flex-1">
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 ${
-                    idx <= currentStepIndex ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-300 text-gray-400'
-                  }`}>
-                    {idx <= currentStepIndex ? '✓' : step.icon}
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#111827', margin: '0 0 1.5rem 0' }}>Completion Progress</h2>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            {statusSteps.map((step, idx) => {
+              const isPassed = idx <= currentStepIndex;
+              return (
+                <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: idx < statusSteps.length - 1 ? 1 : 'none' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
+                    <div style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      border: `2px solid ${isPassed ? '#4f46e5' : '#d1d5db'}`,
+                      background: isPassed ? '#4f46e5' : '#f9fafb',
+                      color: isPassed ? '#ffffff' : '#9ca3af',
+                      transition: 'all 0.3s'
+                    }}>
+                      {isPassed ? '✓' : step.icon}
+                    </div>
+                    <p style={{
+                      fontSize: '0.75rem',
+                      marginTop: '0.5rem',
+                      textAlign: 'center',
+                      fontWeight: isPassed ? 700 : 500,
+                      color: isPassed ? '#4f46e5' : '#6b7280',
+                      lineHeight: 1.3,
+                      margin: '0.5rem 0 0 0'
+                    }}>
+                      {step.label}
+                    </p>
                   </div>
-                  <p className={`text-xs mt-1 text-center max-w-[70px] ${idx <= currentStepIndex ? 'text-indigo-600 font-medium' : 'text-gray-400'}`}>
-                    {step.label}
-                  </p>
+                  {idx < statusSteps.length - 1 && (
+                    <div style={{
+                      flex: 1,
+                      height: '3px',
+                      margin: '0 0.5rem',
+                      marginBottom: '1.25rem',
+                      background: idx < currentStepIndex ? '#4f46e5' : '#e5e7eb',
+                      borderRadius: '9999px'
+                    }} />
+                  )}
                 </div>
-                {idx < statusSteps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-1 mb-5 ${idx < currentStepIndex ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Company Evaluation */}
+      {/* Company Evaluation Block */}
       {submission?.companyEvaluation?.overallRating && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">🏢 Company Evaluation</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#111827', margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🏢</span> Company Mentor Evaluation
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem' }}>
             {[
               ['Participation', submission.companyEvaluation.participation],
               ['Professionalism', submission.companyEvaluation.professionalism],
               ['Technical Learning', submission.companyEvaluation.technicalLearning],
               ['Communication', submission.companyEvaluation.communication],
             ].map(([label, rating]) => (
-              <div key={label} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                <span className="text-sm text-gray-600">{label}</span>
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(s => (
-                    <span key={s} className={`text-lg ${s <= rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
+              <div key={label} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#f9fafb',
+                border: '1px solid #f3f4f6',
+                borderRadius: '0.75rem',
+                padding: '0.75rem 1rem'
+              }}>
+                <span style={{ fontSize: '0.85rem', color: '#4b5563', fontWeight: 500 }}>{label}</span>
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <span key={s} style={{ fontSize: '1rem', color: s <= rating ? '#eab308' : '#e5e7eb' }}>★</span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
           {submission.companyEvaluation.feedback && (
-            <div className="mt-4 bg-blue-50 rounded-lg p-4 text-sm text-gray-700">
-              <strong>Feedback:</strong> {submission.companyEvaluation.feedback}
+            <div style={{
+              marginTop: '1.25rem',
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: '0.75rem',
+              padding: '1rem 1.25rem',
+              fontSize: '0.9rem',
+              color: '#1e3a8a',
+              lineHeight: 1.5
+            }}>
+              <strong>Mentor Feedback:</strong> {submission.companyEvaluation.feedback}
             </div>
           )}
         </div>
@@ -144,83 +245,285 @@ export default function FinalSubmissionPage() {
 
       {/* College Mentor Review */}
       {submission?.collegeMentorReview?.recommendation && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-3">🎓 College Mentor Review</h2>
-          <p className="text-gray-700">{submission.collegeMentorReview.recommendation}</p>
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🎓</span> College Faculty Review
+          </h2>
+          <p style={{ color: '#374151', fontSize: '0.95rem', margin: 0, lineHeight: 1.5 }}>{submission.collegeMentorReview.recommendation}</p>
         </div>
       )}
 
       {/* TPO Approval */}
       {submission?.tpoApproval?.status && (
-        <div className={`rounded-2xl border shadow-sm p-6 ${submission.tpoApproval.status === 'APPROVED' ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
-          <h2 className="font-semibold mb-2">
-            {submission.tpoApproval.status === 'APPROVED' ? '✅ TPO Approved — Internship Complete!' : '⚠️ TPO: Correction Required'}
+        <div style={{
+          borderRadius: '1.25rem',
+          border: `1px solid ${submission.tpoApproval.status === 'APPROVED' ? '#bbf7d0' : '#fde68a'}`,
+          background: submission.tpoApproval.status === 'APPROVED' ? '#f0fdf4' : '#fffbeb',
+          padding: '1.5rem 1.75rem'
+        }}>
+          <h2 style={{
+            fontSize: '1.05rem',
+            fontWeight: 700,
+            margin: '0 0 0.5rem 0',
+            color: submission.tpoApproval.status === 'APPROVED' ? '#166534' : '#92400e'
+          }}>
+            {submission.tpoApproval.status === 'APPROVED' ? '✅ TPO Approved — Internship Formally Completed!' : '⚠️ TPO: Review / Correction Required'}
           </h2>
-          {submission.tpoApproval.remarks && <p className="text-sm text-gray-700">{submission.tpoApproval.remarks}</p>}
+          {submission.tpoApproval.remarks && (
+            <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0 }}>{submission.tpoApproval.remarks}</p>
+          )}
         </div>
       )}
 
-      {/* Submit Form */}
+      {/* Submission Form OR Submitted Details View */}
       {!submission ? (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-5">Submit Final Work</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '2rem'
+        }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827', margin: '0 0 0.5rem 0' }}>Submit Final Work</h2>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
+            Fill out your project wrap-up details. Once submitted, it enters the verification workflow.
+          </p>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Project Summary *</label>
-              <textarea rows={4} required value={form.projectSummary}
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
+                Project Summary & Key Contributions *
+              </label>
+              <textarea
+                rows={4}
+                required
+                value={form.projectSummary}
                 onChange={e => setForm(f => ({ ...f, projectSummary: e.target.value }))}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none resize-none"
-                placeholder="Summarize what you worked on, key contributions, and outcomes..." />
+                style={{
+                  width: '100%',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  fontSize: '0.9rem',
+                  color: '#111827',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Summarize the core features built, challenges solved, and overall outcomes..."
+              />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Skills Learned *</label>
-              <input type="text" required value={form.skillsLearned}
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
+                Skills & Technologies Mastered * <span style={{ fontWeight: 400, color: '#9ca3af' }}>(comma-separated)</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={form.skillsLearned}
                 onChange={e => setForm(f => ({ ...f, skillsLearned: e.target.value }))}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none"
-                placeholder="React, Node.js, MongoDB, REST APIs... (comma separated)" />
+                style={{
+                  width: '100%',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  fontSize: '0.9rem',
+                  color: '#111827',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="React, TypeScript, Node.js, Express, MongoDB, Docker..."
+              />
             </div>
-            <div className="grid grid-cols-1 gap-4">
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Final Report URL <span className="text-gray-400">(optional)</span></label>
-                <input type="url" value={form.finalReportUrl}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Final Report URL <span style={{ color: '#9ca3af', fontWeight: 400 }}>(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={form.finalReportUrl}
                   onChange={e => setForm(f => ({ ...f, finalReportUrl: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 outline-none"
-                  placeholder="https://drive.google.com/..." />
+                  style={{
+                    width: '100%',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.75rem',
+                    padding: '0.65rem 0.9rem',
+                    fontSize: '0.875rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="https://drive.google.com/..."
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Presentation URL <span className="text-gray-400">(optional)</span></label>
-                <input type="url" value={form.presentationUrl}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Presentation Deck URL <span style={{ color: '#9ca3af', fontWeight: 400 }}>(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={form.presentationUrl}
                   onChange={e => setForm(f => ({ ...f, presentationUrl: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 outline-none"
-                  placeholder="https://slides.google.com/..." />
+                  style={{
+                    width: '100%',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.75rem',
+                    padding: '0.65rem 0.9rem',
+                    fontSize: '0.875rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="https://slides.google.com/..."
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Certificate URL <span className="text-gray-400">(optional)</span></label>
-                <input type="url" value={form.certificateUrl}
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                  Certificate / Completion Proof <span style={{ color: '#9ca3af', fontWeight: 400 }}>(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={form.certificateUrl}
                   onChange={e => setForm(f => ({ ...f, certificateUrl: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-300 outline-none"
-                  placeholder="https://..." />
+                  style={{
+                    width: '100%',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.75rem',
+                    padding: '0.65rem 0.9rem',
+                    fontSize: '0.875rem',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="https://..."
+                />
               </div>
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" disabled={submitting}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-              {submitting ? 'Submitting…' : '📤 Submit Final Work'}
+
+            {error && (
+              <div style={{ color: '#dc2626', background: '#fef2f2', padding: '0.75rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', border: '1px solid #fecaca' }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                marginTop: '0.5rem',
+                width: '100%',
+                background: '#4f46e5',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '0.75rem',
+                padding: '0.9rem',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                opacity: submitting ? 0.6 : 1,
+                transition: 'background 0.2s',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)'
+              }}
+            >
+              {submitting ? 'Submitting to Portal…' : '📤 Submit Final Work for Approval'}
             </button>
           </form>
         </div>
-      ) : submission.status !== 'COMPLETED' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-3">Your Submission</h2>
-          <p className="text-sm text-gray-600 mb-3">{submission.projectSummary}</p>
-          <div className="flex flex-wrap gap-2">
-            {submission.skillsLearned?.map(s => (
-              <span key={s} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">{s}</span>
-            ))}
+      ) : (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '2rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#111827', margin: 0 }}>Your Final Submission Summary</h2>
+            <span style={{ fontSize: '0.8rem', background: '#e0e7ff', color: '#3730a3', padding: '0.3rem 0.8rem', borderRadius: '9999px', fontWeight: 600 }}>
+              Submitted on {submission.createdAt ? new Date(submission.createdAt).toLocaleDateString('en-IN') : 'Recently'}
+            </span>
           </div>
-          {submission.finalReportUrl && (
-            <a href={submission.finalReportUrl} target="_blank" rel="noreferrer" className="inline-block mt-3 text-sm text-indigo-600 underline">View Final Report →</a>
-          )}
+
+          <div style={{ background: '#f9fafb', padding: '1.25rem', borderRadius: '0.875rem', border: '1px solid #f3f4f6', marginBottom: '1.25rem' }}>
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', margin: '0 0 0.5rem 0' }}>Project Summary</h4>
+            <p style={{ fontSize: '0.95rem', color: '#1f2937', margin: 0, lineHeight: 1.6 }}>{submission.projectSummary}</p>
+          </div>
+
+          <div style={{ marginBottom: '1.25rem' }}>
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', margin: '0 0 0.6rem 0' }}>Skills Learned</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {submission.skillsLearned?.map(s => (
+                <span key={s} style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  background: '#eef2ff',
+                  color: '#4f46e5',
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '9999px',
+                  border: '1px solid #e0e7ff'
+                }}>
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6' }}>
+            {submission.finalReportUrl && (
+              <a href={submission.finalReportUrl} target="_blank" rel="noreferrer" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: '#4f46e5',
+                textDecoration: 'none',
+                background: '#f5f3ff',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #ddd6fe'
+              }}>
+                📄 View Final Report ↗
+              </a>
+            )}
+            {submission.presentationUrl && (
+              <a href={submission.presentationUrl} target="_blank" rel="noreferrer" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: '#4f46e5',
+                textDecoration: 'none',
+                background: '#f5f3ff',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #ddd6fe'
+              }}>
+                📊 View Presentation Slides ↗
+              </a>
+            )}
+            {submission.certificateUrl && (
+              <a href={submission.certificateUrl} target="_blank" rel="noreferrer" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: '#166534',
+                textDecoration: 'none',
+                background: '#f0fdf4',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #bbf7d0'
+              }}>
+                🏆 View Certificate ↗
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>

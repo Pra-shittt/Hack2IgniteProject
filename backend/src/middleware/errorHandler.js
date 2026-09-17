@@ -1,6 +1,11 @@
 const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
 
+  // Mongoose CastError (invalid ObjectId)
+  if (err.name === 'CastError') {
+    return res.status(404).json({ success: false, message: 'Resource not found', code: 'NOT_FOUND' });
+  }
+
   // Mongoose validation error
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map((e) => e.message);

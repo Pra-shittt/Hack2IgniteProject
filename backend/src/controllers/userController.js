@@ -73,7 +73,7 @@ const uploadResume = async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded', code: 'NO_FILE' });
     }
-    const result = await uploadToCloudinary(req.file.buffer, 'resumes');
+    const result = await uploadToCloudinary(req.file.buffer, 'resumes', 'raw', req.file.originalname);
     const profile = await StudentProfile.findOneAndUpdate(
       { userId: req.user._id },
       { resumeUrl: result.secure_url },

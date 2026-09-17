@@ -1,20 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
-const statusColors = {
-  DRAFT: 'bg-gray-100 text-gray-700',
-  SUBMITTED: 'bg-blue-100 text-blue-700',
-  REVISION_REQUIRED: 'bg-amber-100 text-amber-700',
-  VERIFIED: 'bg-green-100 text-green-700',
-};
-
-const riskColors = {
-  SAFE: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  LOW: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  MEDIUM: 'bg-orange-100 text-orange-700 border-orange-200',
-  HIGH: 'bg-red-100 text-red-700 border-red-200',
-};
-
 export default function MyInternshipPage() {
   const [record, setRecord] = useState(null);
   const [milestones, setMilestones] = useState([]);
@@ -30,9 +16,7 @@ export default function MyInternshipPage() {
   const [submitting, setSubmitting] = useState(false);
   const [aiWarning, setAiWarning] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
@@ -43,7 +27,6 @@ export default function MyInternshipPage() {
       ]);
       setRecord(recordRes.data.data);
       setOffer(offerRes.data.data);
-
       if (recordRes.data.data) {
         const [msRes, rpRes] = await Promise.all([
           api.get(`/internship-records/${recordRes.data.data._id}/milestones`),
@@ -53,9 +36,7 @@ export default function MyInternshipPage() {
         setReports(rpRes.data.data || []);
         setReportForm(f => ({ ...f, weekNumber: (rpRes.data.data?.length || 0) + 1 }));
       }
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleRespondOffer = async (status) => {
@@ -74,78 +55,101 @@ export default function MyInternshipPage() {
       };
       const endpoint = asDraft ? '/weekly-reports/draft' : '/weekly-reports';
       const res = await api.post(endpoint, payload);
-      if (res.data.confidentialityWarning) {
-        setAiWarning(res.data.confidentialityWarning);
-      }
+      if (res.data.confidentialityWarning) setAiWarning(res.data.confidentialityWarning);
       setShowReportForm(false);
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit report');
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   const overallProgress = milestones.length > 0
-    ? Math.round(milestones.reduce((s, m) => s + m.progress, 0) / milestones.length)
-    : 0;
+    ? Math.round(milestones.reduce((s, m) => s + m.progress, 0) / milestones.length) : 0;
+
+  const statusBadge = (status) => {
+    const m = {
+      DRAFT: { bg: '#f1f5f9', color: '#475569' },
+      SUBMITTED: { bg: '#dbeafe', color: '#2563eb' },
+      REVISION_REQUIRED: { bg: '#fef3c7', color: '#d97706' },
+      VERIFIED: { bg: '#dcfce7', color: '#16a34a' },
+    };
+    return m[status] || { bg: '#f1f5f9', color: '#475569' };
+  };
+
+  const riskBadge = (level) => {
+    const m = {
+      LOW: { bg: '#fef3c7', color: '#d97706', border: '#fde68a' },
+      MEDIUM: { bg: '#ffedd5', color: '#ea580c', border: '#fed7aa' },
+      HIGH: { bg: '#fee2e2', color: '#dc2626', border: '#fecaca' },
+    };
+    return m[level] || { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
+  };
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 256 }}>
+      <div className="spinner" />
     </div>
   );
 
-  // No active internship — show offer or empty state
+  // No active internship
   if (!record) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">My Internship</h1>
+      <div style={{ maxWidth: 640, margin: '0 auto' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', marginBottom: 24 }}>My Internship</h1>
         {offer ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl">🎉</div>
+          <div className="card" style={{ padding: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <div style={{ width: 48, height: 48, background: '#e0e7ff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🎉</div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">You have an offer!</h2>
-                <p className="text-gray-500 text-sm">Review and respond to your internship offer</p>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>You have an offer!</h2>
+                <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Review and respond to your internship offer</p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-5 space-y-3 mb-6">
-              <div className="flex justify-between"><span className="text-gray-500">Role</span><span className="font-medium">{offer.internshipId?.title}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Company</span><span className="font-medium">{offer.companyId?.name}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Stipend</span><span className="font-medium">₹{offer.stipend?.toLocaleString()}/month</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Duration</span><span className="font-medium">{offer.duration}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Location</span><span className="font-medium">{offer.location || 'Remote'}</span></div>
-              {offer.joiningDate && <div className="flex justify-between"><span className="text-gray-500">Joining Date</span><span className="font-medium">{new Date(offer.joiningDate).toLocaleDateString()}</span></div>}
+            <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+              {[
+                ['Role', offer.internshipId?.title],
+                ['Company', offer.companyId?.name],
+                ['Stipend', `₹${offer.stipend?.toLocaleString()}/month`],
+                ['Duration', offer.duration],
+                ['Location', offer.location || 'Remote'],
+                ...(offer.joiningDate ? [['Joining Date', new Date(offer.joiningDate).toLocaleDateString()]] : []),
+              ].map(([label, value]) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ color: '#64748b', fontSize: '0.875rem' }}>{label}</span>
+                  <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{value}</span>
+                </div>
+              ))}
             </div>
             {offer.additionalNote && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 text-sm text-blue-700">
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: 12, marginBottom: 24, fontSize: '0.85rem', color: '#1e40af' }}>
                 <strong>Note from recruiter:</strong> {offer.additionalNote}
               </div>
             )}
             {offer.status === 'PENDING' ? (
-              <div className="flex gap-3">
-                <button onClick={() => handleRespondOffer('ACCEPTED')}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors">
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => handleRespondOffer('ACCEPTED')} className="btn btn-primary" style={{ flex: 1, padding: '12px 0', borderRadius: 12, background: '#16a34a' }}>
                   ✓ Accept Offer
                 </button>
-                <button onClick={() => handleRespondOffer('DECLINED')}
-                  className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-xl font-medium hover:bg-red-100 transition-colors">
+                <button onClick={() => handleRespondOffer('DECLINED')} className="btn btn-secondary" style={{ flex: 1, padding: '12px 0', borderRadius: 12, borderColor: '#fca5a5', color: '#dc2626' }}>
                   ✕ Decline
                 </button>
               </div>
             ) : (
-              <div className={`text-center py-3 rounded-xl font-medium ${offer.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <div style={{
+                textAlign: 'center', padding: 12, borderRadius: 12, fontWeight: 500,
+                background: offer.status === 'ACCEPTED' ? '#dcfce7' : '#fee2e2',
+                color: offer.status === 'ACCEPTED' ? '#16a34a' : '#dc2626',
+              }}>
                 Offer {offer.status === 'ACCEPTED' ? 'Accepted ✓' : 'Declined'}
-                {offer.status === 'ACCEPTED' && <p className="text-sm font-normal mt-1">Awaiting college TPO approval…</p>}
+                {offer.status === 'ACCEPTED' && <p style={{ fontSize: '0.8rem', fontWeight: 400, marginTop: 4 }}>Awaiting college TPO approval…</p>}
               </div>
             )}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">🎓</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Internship</h2>
-            <p className="text-gray-500">Apply to internships to get started. Your offer will appear here once a recruiter selects you.</p>
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>🎓</div>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#0f172a', marginBottom: 8 }}>No Active Internship</h2>
+            <p style={{ color: '#64748b' }}>Apply to internships to get started. Your offer will appear here once a recruiter selects you.</p>
           </div>
         )}
       </div>
@@ -155,231 +159,240 @@ export default function MyInternshipPage() {
   const tabs = ['overview', 'milestones', 'reports'];
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">{record.internshipId?.title}</h1>
-            <p className="text-indigo-100">{record.companyId?.name} • {record.internshipId?.location || 'Remote'}</p>
+      <div style={{
+        background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, padding: 24, color: 'white',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 4, wordBreak: 'break-word' }}>{record.internshipId?.title}</h1>
+            <p style={{ color: '#c7d2fe', fontSize: '0.9rem' }}>{record.companyId?.name} • {record.internshipId?.location || 'Remote'}</p>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${record.status === 'ACTIVE' ? 'bg-green-400/20 text-green-100 border border-green-400/30' : 'bg-white/20 text-white'}`}>
+          <span style={{
+            padding: '4px 14px', borderRadius: 999, fontSize: '0.8rem', fontWeight: 500, flexShrink: 0,
+            background: record.status === 'ACTIVE' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.2)',
+            color: record.status === 'ACTIVE' ? '#bbf7d0' : 'white',
+            border: record.status === 'ACTIVE' ? '1px solid rgba(74,222,128,0.3)' : 'none',
+          }}>
             {record.status}
           </span>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-4">
-          <div><p className="text-indigo-200 text-xs uppercase tracking-wide">Started</p><p className="font-semibold text-sm">{new Date(record.startDate).toLocaleDateString()}</p></div>
-          <div><p className="text-indigo-200 text-xs uppercase tracking-wide">Ends</p><p className="font-semibold text-sm">{new Date(record.endDate).toLocaleDateString()}</p></div>
-          <div><p className="text-indigo-200 text-xs uppercase tracking-wide">Progress</p><p className="font-semibold text-sm">{overallProgress}%</p></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16 }}>
+          <div><p style={{ color: '#c7d2fe', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Started</p><p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{new Date(record.startDate).toLocaleDateString()}</p></div>
+          <div><p style={{ color: '#c7d2fe', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ends</p><p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{new Date(record.endDate).toLocaleDateString()}</p></div>
+          <div><p style={{ color: '#c7d2fe', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Progress</p><p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{overallProgress}%</p></div>
         </div>
-        <div className="mt-3 bg-white/20 rounded-full h-2">
-          <div className="bg-white rounded-full h-2 transition-all" style={{ width: `${overallProgress}%` }}></div>
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 999, height: 8, marginTop: 12 }}>
+          <div style={{ background: 'white', borderRadius: 999, height: 8, transition: 'width 0.3s', width: `${overallProgress}%` }} />
         </div>
       </div>
 
       {/* AI Warning */}
-      {aiWarning && aiWarning.riskLevel !== 'SAFE' && (
-        <div className={`border rounded-xl p-4 ${riskColors[aiWarning.riskLevel]}`}>
-          <div className="flex items-center gap-2 font-semibold mb-2">
-            ⚠️ AI Confidentiality Warning — Risk Level: {aiWarning.riskLevel}
+      {aiWarning && aiWarning.riskLevel !== 'SAFE' && (() => {
+        const rb = riskBadge(aiWarning.riskLevel);
+        return (
+          <div style={{ border: `1px solid ${rb.border}`, borderRadius: 12, padding: 16, background: rb.bg, color: rb.color }}>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>⚠️ AI Confidentiality Warning — Risk Level: {aiWarning.riskLevel}</div>
+            {aiWarning.flaggedCategories?.length > 0 && <p style={{ fontSize: '0.85rem', marginBottom: 4 }}><strong>Flagged:</strong> {aiWarning.flaggedCategories.join(', ')}</p>}
+            {aiWarning.suggestion && <p style={{ fontSize: '0.85rem' }}>{aiWarning.suggestion}</p>}
+            <button onClick={() => setAiWarning(null)} style={{ fontSize: '0.75rem', textDecoration: 'underline', marginTop: 8, background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>Dismiss</button>
           </div>
-          {aiWarning.flaggedCategories?.length > 0 && (
-            <p className="text-sm mb-1"><strong>Flagged:</strong> {aiWarning.flaggedCategories.join(', ')}</p>
-          )}
-          {aiWarning.suggestion && <p className="text-sm">{aiWarning.suggestion}</p>}
-          <button onClick={() => setAiWarning(null)} className="text-xs underline mt-2">Dismiss</button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="flex border-b border-gray-200">
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
           {tabs.map(t => (
-            <button key={t} onClick={() => setActiveTab(t)}
-              className={`flex-1 py-3 text-sm font-medium capitalize transition-colors ${activeTab === t ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}>
+            <button key={t} onClick={() => setActiveTab(t)} style={{
+              flex: 1, padding: '12px 0', fontSize: '0.85rem', fontWeight: 500, textTransform: 'capitalize',
+              background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              borderBottom: activeTab === t ? '2px solid #4f46e5' : '2px solid transparent',
+              color: activeTab === t ? '#4f46e5' : '#64748b',
+              transition: 'all 0.15s',
+            }}>
               {t}
             </button>
           ))}
         </div>
 
-        <div className="p-6">
-          {/* Overview Tab */}
+        <div style={{ padding: 24 }}>
+          {/* Overview */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">College Mentor</p>
-                  <p className="font-medium">{record.collegeMentorId?.name || 'Not assigned'}</p>
-                  <p className="text-sm text-gray-500">{record.collegeMentorId?.email || ''}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
+                  <p style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>College Mentor</p>
+                  <p style={{ fontWeight: 500, wordBreak: 'break-word' }}>{record.collegeMentorId?.name || 'Not assigned'}</p>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', wordBreak: 'break-all' }}>{record.collegeMentorId?.email || ''}</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Company Mentor</p>
-                  <p className="font-medium">{record.companyMentorId?.name || 'Not assigned'}</p>
-                  <p className="text-sm text-gray-500">{record.companyMentorId?.email || ''}</p>
+                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
+                  <p style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Company Mentor</p>
+                  <p style={{ fontWeight: 500, wordBreak: 'break-word' }}>{record.companyMentorId?.name || 'Not assigned'}</p>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', wordBreak: 'break-all' }}>{record.companyMentorId?.email || ''}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center bg-blue-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-blue-600">{reports.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Reports Submitted</p>
-                </div>
-                <div className="text-center bg-green-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-green-600">{reports.filter(r => r.status === 'VERIFIED').length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Verified</p>
-                </div>
-                <div className="text-center bg-purple-50 rounded-xl p-4">
-                  <p className="text-2xl font-bold text-purple-600">{milestones.filter(m => m.status === 'COMPLETED').length}/{milestones.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Milestones Done</p>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                {[
+                  { value: reports.length, label: 'Reports Submitted', bg: '#eff6ff', color: '#2563eb' },
+                  { value: reports.filter(r => r.status === 'VERIFIED').length, label: 'Verified', bg: '#f0fdf4', color: '#16a34a' },
+                  { value: `${milestones.filter(m => m.status === 'COMPLETED').length}/${milestones.length}`, label: 'Milestones Done', bg: '#faf5ff', color: '#7c3aed' },
+                ].map(c => (
+                  <div key={c.label} style={{ textAlign: 'center', background: c.bg, borderRadius: 12, padding: 16 }}>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 700, color: c.color }}>{c.value}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>{c.label}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Milestones Tab */}
+          {/* Milestones */}
           {activeTab === 'milestones' && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {milestones.length === 0 ? (
-                <div className="text-center py-10 text-gray-400">
-                  <div className="text-4xl mb-2">🎯</div>
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🎯</div>
                   <p>No milestones set yet. Your company mentor will add them.</p>
                 </div>
-              ) : milestones.map(m => (
-                <div key={m._id} className="border border-gray-200 rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{m.title}</h3>
-                      {m.description && <p className="text-sm text-gray-500 mt-1">{m.description}</p>}
+              ) : milestones.map(m => {
+                const msColor = m.status === 'COMPLETED' ? { bg: '#dcfce7', color: '#16a34a' }
+                  : m.status === 'IN_PROGRESS' ? { bg: '#dbeafe', color: '#2563eb' }
+                  : { bg: '#f1f5f9', color: '#475569' };
+                return (
+                  <div key={m._id} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <h3 style={{ fontWeight: 500, color: '#0f172a', wordBreak: 'break-word' }}>{m.title}</h3>
+                        {m.description && <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4, wordBreak: 'break-word' }}>{m.description}</p>}
+                      </div>
+                      <span style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 999, fontWeight: 500, background: msColor.bg, color: msColor.color, flexShrink: 0 }}>
+                        {m.status.replace('_', ' ')}
+                      </span>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      m.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                      m.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                    }`}>{m.status.replace('_', ' ')}</span>
+                    <div style={{ background: '#f1f5f9', borderRadius: 999, height: 8, marginTop: 12 }}>
+                      <div style={{ background: '#6366f1', borderRadius: 999, height: 8, transition: 'width 0.3s', width: `${m.progress}%` }} />
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: 4 }}>
+                      {m.progress}% complete{m.dueDate ? ` • Due ${new Date(m.dueDate).toLocaleDateString()}` : ''}
+                    </p>
                   </div>
-                  <div className="bg-gray-100 rounded-full h-2 mt-3">
-                    <div className="bg-indigo-500 rounded-full h-2 transition-all" style={{ width: `${m.progress}%` }}></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{m.progress}% complete{m.dueDate ? ` • Due ${new Date(m.dueDate).toLocaleDateString()}` : ''}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          {/* Reports Tab */}
+          {/* Reports */}
           {activeTab === 'reports' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-900">Weekly Reports</h3>
-                <button onClick={() => setShowReportForm(true)}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                  + New Report
-                </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontWeight: 600, color: '#0f172a' }}>Weekly Reports</h3>
+                <button onClick={() => setShowReportForm(true)} className="btn btn-primary btn-sm">+ New Report</button>
               </div>
 
               {showReportForm && (
-                <div className="border-2 border-indigo-200 rounded-xl p-5 bg-indigo-50 space-y-4">
-                  <h4 className="font-semibold text-gray-900">Week {reportForm.weekNumber} Report</h4>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Work Summary *</label>
-                    <textarea rows={3} value={reportForm.workSummary}
-                      onChange={e => setReportForm(f => ({ ...f, workSummary: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 outline-none resize-none"
-                      placeholder="What did you work on this week? (Keep it high-level — no confidential details)" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                <div style={{ border: '2px solid #c7d2fe', borderRadius: 12, padding: 20, background: '#eef2ff' }}>
+                  <h4 style={{ fontWeight: 600, color: '#0f172a', marginBottom: 16 }}>Week {reportForm.weekNumber} Report</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Skills Used</label>
-                      <input type="text" value={reportForm.skillsUsed}
-                        onChange={e => setReportForm(f => ({ ...f, skillsUsed: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none"
-                        placeholder="React, Python, SQL (comma separated)" />
+                      <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Work Summary *</label>
+                      <textarea rows={3} value={reportForm.workSummary}
+                        onChange={e => setReportForm(f => ({ ...f, workSummary: e.target.value }))}
+                        className="input" style={{ resize: 'none', fontFamily: 'inherit' }}
+                        placeholder="What did you work on this week?" />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Skills Used</label>
+                        <input className="input" value={reportForm.skillsUsed}
+                          onChange={e => setReportForm(f => ({ ...f, skillsUsed: e.target.value }))}
+                          placeholder="React, Python (comma separated)" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Attendance (days)</label>
+                        <input type="number" min={0} max={7} className="input" value={reportForm.attendanceDays}
+                          onChange={e => setReportForm(f => ({ ...f, attendanceDays: +e.target.value }))} />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Attendance (days)</label>
-                      <input type="number" min={0} max={7} value={reportForm.attendanceDays}
-                        onChange={e => setReportForm(f => ({ ...f, attendanceDays: +e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none" />
+                      <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Learning Outcomes</label>
+                      <textarea rows={2} className="input" style={{ resize: 'none', fontFamily: 'inherit' }} value={reportForm.learningOutcomes}
+                        onChange={e => setReportForm(f => ({ ...f, learningOutcomes: e.target.value }))} />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Learning Outcomes</label>
-                    <textarea rows={2} value={reportForm.learningOutcomes}
-                      onChange={e => setReportForm(f => ({ ...f, learningOutcomes: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Challenges</label>
-                      <textarea rows={2} value={reportForm.challenges}
-                        onChange={e => setReportForm(f => ({ ...f, challenges: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none" />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Challenges</label>
+                        <textarea rows={2} className="input" style={{ resize: 'none', fontFamily: 'inherit' }} value={reportForm.challenges}
+                          onChange={e => setReportForm(f => ({ ...f, challenges: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Achievements</label>
+                        <textarea rows={2} className="input" style={{ resize: 'none', fontFamily: 'inherit' }} value={reportForm.achievements}
+                          onChange={e => setReportForm(f => ({ ...f, achievements: e.target.value }))} />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Achievements</label>
-                      <textarea rows={2} value={reportForm.achievements}
-                        onChange={e => setReportForm(f => ({ ...f, achievements: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none" />
+                      <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Next Week Goals</label>
+                      <textarea rows={2} className="input" style={{ resize: 'none', fontFamily: 'inherit' }} value={reportForm.nextWeekGoals}
+                        onChange={e => setReportForm(f => ({ ...f, nextWeekGoals: e.target.value }))} />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Next Week Goals</label>
-                    <textarea rows={2} value={reportForm.nextWeekGoals}
-                      onChange={e => setReportForm(f => ({ ...f, nextWeekGoals: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-300 outline-none resize-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Progress this week (%)</label>
-                    <input type="range" min={0} max={100} value={reportForm.progressPercent}
-                      onChange={e => setReportForm(f => ({ ...f, progressPercent: +e.target.value }))}
-                      className="w-full accent-indigo-600" />
-                    <p className="text-xs text-gray-500 mt-1">{reportForm.progressPercent}%</p>
-                  </div>
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
-                    🛡️ <strong>AI Confidentiality Check</strong> will run on submit. Do not include API keys, passwords, client data, or proprietary code.
-                  </div>
-                  <div className="flex gap-3">
-                    <button onClick={() => handleSubmitReport(false)} disabled={submitting}
-                      className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-                      {submitting ? 'Checking…' : '🛡️ Submit (AI Check)'}
-                    </button>
-                    <button onClick={() => handleSubmitReport(true)} disabled={submitting}
-                      className="px-4 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors">
-                      Save Draft
-                    </button>
-                    <button onClick={() => setShowReportForm(false)}
-                      className="px-4 text-gray-500 py-2.5 text-sm hover:text-gray-700">
-                      Cancel
-                    </button>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: 500, fontSize: '0.8rem', color: '#475569', marginBottom: 4 }}>Progress this week ({reportForm.progressPercent}%)</label>
+                      <input type="range" min={0} max={100} value={reportForm.progressPercent} style={{ width: '100%', accentColor: '#4f46e5' }}
+                        onChange={e => setReportForm(f => ({ ...f, progressPercent: +e.target.value }))} />
+                    </div>
+                    <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: 12, fontSize: '0.78rem', color: '#92400e' }}>
+                      🛡️ <strong>AI Confidentiality Check</strong> will run on submit. Do not include API keys, passwords, or proprietary code.
+                    </div>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button onClick={() => handleSubmitReport(false)} disabled={submitting} className="btn btn-primary" style={{ flex: 1 }}>
+                        {submitting ? 'Checking…' : '🛡️ Submit (AI Check)'}
+                      </button>
+                      <button onClick={() => handleSubmitReport(true)} disabled={submitting} className="btn btn-secondary">Save Draft</button>
+                      <button onClick={() => setShowReportForm(false)} className="btn btn-ghost">Cancel</button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {reports.length === 0 ? (
-                <div className="text-center py-10 text-gray-400">
-                  <div className="text-4xl mb-2">📝</div>
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📝</div>
                   <p>No reports yet. Submit your first weekly report.</p>
                 </div>
-              ) : reports.map(r => (
-                <div key={r._id} className="border border-gray-200 rounded-xl p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">Week {r.weekNumber}</p>
-                      <p className="text-sm text-gray-500 line-clamp-2 mt-1">{r.workSummary}</p>
+              ) : reports.map(r => {
+                const sb = statusBadge(r.status);
+                return (
+                  <div key={r._id} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontWeight: 500, color: '#0f172a' }}>Week {r.weekNumber}</p>
+                        <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'break-word' }}>{r.workSummary}</p>
+                      </div>
+                      <span style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 999, fontWeight: 500, background: sb.bg, color: sb.color, flexShrink: 0 }}>
+                        {r.status.replace('_', ' ')}
+                      </span>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ml-3 shrink-0 ${statusColors[r.status]}`}>{r.status.replace('_', ' ')}</span>
+                    {r.mentorComment && (
+                      <div style={{ marginTop: 12, background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: 10, fontSize: '0.78rem', color: '#92400e' }}>
+                        <strong>Mentor:</strong> {r.mentorComment}
+                      </div>
+                    )}
+                    {r.confidentialityCheck?.riskLevel && r.confidentialityCheck.riskLevel !== 'SAFE' && !r.confidentialityCheck.skipped && (() => {
+                      const rb = riskBadge(r.confidentialityCheck.riskLevel);
+                      return (
+                        <div style={{ marginTop: 8, fontSize: '0.75rem', padding: '4px 10px', borderRadius: 8, border: `1px solid ${rb.border}`, background: rb.bg, color: rb.color }}>
+                          ⚠️ AI Risk: {r.confidentialityCheck.riskLevel}
+                        </div>
+                      );
+                    })()}
+                    <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 8 }}>
+                      {r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : 'Draft'}
+                    </p>
                   </div>
-                  {r.mentorComment && (
-                    <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-700">
-                      <strong>Mentor:</strong> {r.mentorComment}
-                    </div>
-                  )}
-                  {r.confidentialityCheck?.riskLevel && r.confidentialityCheck.riskLevel !== 'SAFE' && !r.confidentialityCheck.skipped && (
-                    <div className={`mt-2 text-xs px-2 py-1 rounded border ${riskColors[r.confidentialityCheck.riskLevel]}`}>
-                      ⚠️ AI Risk: {r.confidentialityCheck.riskLevel}
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-400 mt-2">{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString() : 'Draft'}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

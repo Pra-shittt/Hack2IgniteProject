@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
 const outcomeConfig = {
-  COMPLETED: { label: 'Completed', color: 'bg-green-100 text-green-700 border-green-200', icon: '🏆' },
-  PPO: { label: 'Pre-Placement Offer', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: '⭐' },
-  EXTENDED: { label: 'Extended', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: '📅' },
-  NO_OFFER: { label: 'No Offer', color: 'bg-gray-100 text-gray-600 border-gray-200', icon: '📋' },
+  COMPLETED: { label: 'Completed', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0', icon: '🏆' },
+  PPO: { label: 'Pre-Placement Offer (PPO)', bg: '#f5f3ff', color: '#6d28d9', border: '#ddd6fe', icon: '⭐' },
+  EXTENDED: { label: 'Internship Extended', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe', icon: '📅' },
+  NO_OFFER: { label: 'Completed (No Offer)', bg: '#f3f4f6', color: '#4b5563', border: '#e5e7eb', icon: '📋' },
 };
 
 export default function DigitalRecordPage() {
@@ -19,19 +19,30 @@ export default function DigitalRecordPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          border: '3px solid #e0e7ff',
+          borderTopColor: '#4f46e5',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
+    );
+  }
 
-  if (!record || !record.internshipRecord) return (
-    <div className="text-center py-20">
-      <div className="text-6xl mb-4">📜</div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">No Internship Record Yet</h2>
-      <p className="text-gray-500">Your digital internship record will appear here once you complete your internship.</p>
-    </div>
-  );
+  if (!record || !record.internshipRecord) {
+    return (
+      <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>
+        <div style={{ fontSize: '3.75rem', marginBottom: '1rem' }}>📜</div>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.5rem' }}>No Digital Record Yet</h2>
+        <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>Your verified digital internship record and completion credentials will be compiled here once you finish your internship.</p>
+      </div>
+    );
+  }
 
   const { internshipRecord, finalSubmission, stats, learningJourney, evaluation, outcome } = record;
   const durationDays = internshipRecord.startDate && internshipRecord.endDate
@@ -41,168 +52,345 @@ export default function DigitalRecordPage() {
   const outcomeInfo = outcome ? outcomeConfig[outcome] : null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3.5rem' }}>
       {/* Header Card */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 rounded-2xl p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
-        <div className="relative">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-indigo-200 text-sm font-medium uppercase tracking-widest mb-1">Digital Internship Record</p>
-              <h1 className="text-3xl font-bold mb-1">{record.role}</h1>
-              <p className="text-indigo-200 text-lg">{record.company?.name}</p>
+      <div style={{
+        background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6366f1 100%)',
+        borderRadius: '1.25rem',
+        padding: '2.25rem',
+        color: '#ffffff',
+        position: 'relative',
+        boxShadow: '0 12px 28px -6px rgba(55, 48, 163, 0.35)',
+        overflow: 'hidden'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
+          <div>
+            <div style={{
+              display: 'inline-block',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              background: 'rgba(255,255,255,0.18)',
+              padding: '0.3rem 0.85rem',
+              borderRadius: '9999px',
+              marginBottom: '0.75rem'
+            }}>
+              Official Verified Digital Record
             </div>
-            {outcomeInfo && (
-              <div className={`px-4 py-2 rounded-xl border font-semibold text-sm flex items-center gap-2 ${outcomeInfo.color}`}>
-                {outcomeInfo.icon} {outcomeInfo.label}
-              </div>
-            )}
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 0.4rem 0', lineHeight: 1.2 }}>{record.role || 'Intern'}</h1>
+            <p style={{ fontSize: '1.15rem', color: '#c7d2fe', margin: 0, fontWeight: 500 }}>{record.company?.name || 'Partner Company'}</p>
           </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div>
-              <p className="text-indigo-300 text-xs uppercase tracking-wide">From</p>
-              <p className="font-semibold text-sm">{internshipRecord.startDate ? new Date(internshipRecord.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+
+          {outcomeInfo && (
+            <div style={{
+              padding: '0.65rem 1.25rem',
+              borderRadius: '0.85rem',
+              background: outcomeInfo.bg,
+              color: outcomeInfo.color,
+              border: `1px solid ${outcomeInfo.border}`,
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.08)'
+            }}>
+              <span>{outcomeInfo.icon}</span>
+              <span>{outcomeInfo.label}</span>
             </div>
-            <div>
-              <p className="text-indigo-300 text-xs uppercase tracking-wide">To</p>
-              <p className="font-semibold text-sm">{internshipRecord.endDate ? new Date(internshipRecord.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
-            </div>
-            <div>
-              <p className="text-indigo-300 text-xs uppercase tracking-wide">Duration</p>
-              <p className="font-semibold text-sm">{durationWeeks ? `${durationWeeks} weeks` : '—'}</p>
-            </div>
-            <div>
-              <p className="text-indigo-300 text-xs uppercase tracking-wide">Status</p>
-              <p className="font-semibold text-sm">{internshipRecord.status}</p>
-            </div>
+          )}
+        </div>
+
+        {/* Date / Duration / Status Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: '1rem',
+          background: 'rgba(0, 0, 0, 0.15)',
+          padding: '1.25rem',
+          borderRadius: '0.85rem'
+        }}>
+          <div>
+            <p style={{ color: '#c7d2fe', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 600 }}>Start Date</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
+              {internshipRecord.startDate ? new Date(internshipRecord.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+            </p>
+          </div>
+          <div>
+            <p style={{ color: '#c7d2fe', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 600 }}>End Date</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
+              {internshipRecord.endDate ? new Date(internshipRecord.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+            </p>
+          </div>
+          <div>
+            <p style={{ color: '#c7d2fe', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 600 }}>Total Duration</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
+              {durationWeeks ? `${durationWeeks} Weeks` : durationDays ? `${durationDays} Days` : '—'}
+            </p>
+          </div>
+          <div>
+            <p style={{ color: '#c7d2fe', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 600 }}>Record Status</p>
+            <p style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: '#86efac' }}>
+              {internshipRecord.status || 'ACTIVE'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '1rem'
+      }}>
         {[
-          { label: 'Reports Verified', value: stats?.totalReports ?? '—', icon: '📝', color: 'text-blue-600 bg-blue-50' },
-          { label: 'Milestones', value: stats ? `${stats.milestonesCompleted}/${stats.totalMilestones}` : '—', icon: '🎯', color: 'text-purple-600 bg-purple-50' },
-          { label: 'Attendance', value: stats?.attendancePercent != null ? `${stats.attendancePercent}%` : '—', icon: '📅', color: 'text-green-600 bg-green-50' },
-          { label: 'Skills Gained', value: learningJourney?.length ?? '—', icon: '⚡', color: 'text-indigo-600 bg-indigo-50' },
+          { label: 'Weekly Reports Verified', value: stats?.totalReports ?? '—', icon: '📝', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+          { label: 'Milestones Completed', value: stats ? `${stats.milestonesCompleted} / ${stats.totalMilestones}` : '—', icon: '🎯', bg: '#f5f3ff', border: '#ddd6fe', color: '#6d28d9' },
+          { label: 'Attendance Recorded', value: stats?.attendancePercent != null ? `${stats.attendancePercent}%` : '100%', icon: '📅', bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' },
+          { label: 'Key Skills Tracked', value: learningJourney?.length || finalSubmission?.skillsLearned?.length || '—', icon: '⚡', bg: '#eef2ff', border: '#c7d2fe', color: '#4338ca' },
         ].map(card => (
-          <div key={card.label} className={`rounded-2xl p-5 ${card.color}`}>
-            <div className="text-2xl mb-1">{card.icon}</div>
-            <div className="text-2xl font-bold">{card.value}</div>
-            <div className="text-xs font-medium mt-1 opacity-70">{card.label}</div>
+          <div key={card.label} style={{
+            background: card.bg,
+            border: `1px solid ${card.border}`,
+            borderRadius: '1rem',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{card.icon}</div>
+            <div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: card.color, lineHeight: 1.2 }}>{card.value}</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4b5563', marginTop: '0.35rem' }}>{card.label}</div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Skills & Learning Journey */}
-      {learningJourney?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-bold text-gray-900 text-lg mb-4">⚡ Learning Journey</h2>
-          <div className="flex flex-wrap gap-2 mb-4">
+      {((finalSubmission?.skillsLearned && finalSubmission.skillsLearned.length > 0) || (learningJourney && learningJourney.length > 0)) && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#111827', margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>⚡</span> Skills & Competencies Verified
+          </h2>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
             {(finalSubmission?.skillsLearned || record.skills || []).map(skill => (
-              <span key={skill} className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm font-medium border border-indigo-100">
+              <span key={skill} style={{
+                background: '#eff6ff',
+                color: '#2563eb',
+                padding: '0.45rem 0.95rem',
+                borderRadius: '9999px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                border: '1px solid #dbeafe'
+              }}>
                 {skill}
               </span>
             ))}
           </div>
-          <div className="space-y-2">
-            <p className="text-sm text-gray-500 font-medium mb-2">Skills by usage across weekly reports:</p>
-            {learningJourney.slice(0, 8).map(({ skill, weeksUsed }) => (
-              <div key={skill} className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 w-28 truncate">{skill}</span>
-                <div className="flex-1 bg-gray-100 rounded-full h-2">
-                  <div className="bg-indigo-500 rounded-full h-2 transition-all"
-                    style={{ width: `${Math.min((weeksUsed / (learningJourney[0]?.weeksUsed || 1)) * 100, 100)}%` }}>
+
+          {learningJourney && learningJourney.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <p style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: 600, margin: '0 0 0.25rem 0' }}>
+                Skill frequency across weekly progress submissions:
+              </p>
+              {learningJourney.slice(0, 8).map(({ skill, weeksUsed }) => {
+                const maxWeeks = learningJourney[0]?.weeksUsed || 1;
+                const percentage = Math.min((weeksUsed / maxWeeks) * 100, 100);
+                return (
+                  <div key={skill} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151', width: '130px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {skill}
+                    </span>
+                    <div style={{ flex: 1, background: '#f3f4f6', height: '8px', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{ width: `${percentage}%`, height: '100%', background: '#4f46e5', borderRadius: '9999px' }} />
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: '#6b7280', width: '70px', textAlign: 'right' }}>
+                      {weeksUsed} {weeksUsed === 1 ? 'week' : 'weeks'}
+                    </span>
                   </div>
-                </div>
-                <span className="text-xs text-gray-400 w-16">{weeksUsed} {weeksUsed === 1 ? 'week' : 'weeks'}</span>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {/* Company Evaluation */}
       {evaluation?.overallRating && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-bold text-gray-900 text-lg mb-4">🏢 Company Evaluation</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#111827', margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🏢</span> Final Company Evaluation
+          </h2>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '1rem',
+            marginBottom: '1.25rem'
+          }}>
             {[
               ['Participation', evaluation.participation],
               ['Professionalism', evaluation.professionalism],
               ['Technical Learning', evaluation.technicalLearning],
               ['Communication', evaluation.communication],
             ].map(([label, rating]) => (
-              <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
-                <span className="text-sm text-gray-600">{label}</span>
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(s => (
-                    <span key={s} className={`text-base ${s <= rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
+              <div key={label} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#f9fafb',
+                border: '1px solid #f3f4f6',
+                borderRadius: '0.75rem',
+                padding: '0.75rem 1rem'
+              }}>
+                <span style={{ fontSize: '0.85rem', color: '#4b5563', fontWeight: 500 }}>{label}</span>
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <span key={s} style={{ fontSize: '1rem', color: s <= rating ? '#eab308' : '#e5e7eb' }}>★</span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4 border border-amber-100">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-amber-500">{evaluation.overallRating}</div>
-              <div className="text-xs text-amber-600 font-medium">out of 5</div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.25rem',
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+            borderRadius: '1rem',
+            padding: '1.25rem'
+          }}>
+            <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid #fcd34d' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#b45309', lineHeight: 1 }}>{evaluation.overallRating}</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#92400e', marginTop: '0.25rem' }}>out of 5.0</div>
             </div>
-            <div className="flex-1">
-              <div className="flex gap-0.5 mb-1">
-                {[1,2,3,4,5].map(s => (
-                  <span key={s} className={`text-2xl ${s <= evaluation.overallRating ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
+            <div>
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '0.25rem' }}>
+                {[1, 2, 3, 4, 5].map(s => (
+                  <span key={s} style={{ fontSize: '1.35rem', color: s <= evaluation.overallRating ? '#f59e0b' : '#d1d5db' }}>★</span>
                 ))}
               </div>
-              <p className="text-sm text-amber-700">Overall Internship Rating</p>
+              <p style={{ fontSize: '0.9rem', color: '#78350f', fontWeight: 600, margin: 0 }}>Official Rating by Host Organization</p>
             </div>
           </div>
+
           {evaluation.feedback && (
-            <div className="mt-4 bg-blue-50 rounded-xl p-4 text-sm text-gray-700 border border-blue-100">
-              <strong>Feedback from Company:</strong> {evaluation.feedback}
+            <div style={{
+              marginTop: '1.25rem',
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: '0.75rem',
+              padding: '1rem 1.25rem',
+              fontSize: '0.9rem',
+              color: '#1e3a8a',
+              lineHeight: 1.5
+            }}>
+              <strong>Mentor Feedback & Observations:</strong> {evaluation.feedback}
             </div>
           )}
         </div>
       )}
 
-      {/* Final Submission Documents */}
+      {/* Verified Artifacts & Documents */}
       {finalSubmission && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h2 className="font-bold text-gray-900 text-lg mb-4">📄 Documents</h2>
-          <div className="space-y-2">
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '1.25rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          padding: '1.75rem'
+        }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#111827', margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📄</span> Verified Deliverables & Credentials
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
             {[
-              { label: 'Final Report', url: finalSubmission.finalReportUrl },
-              { label: 'Presentation', url: finalSubmission.presentationUrl },
-              { label: 'Company Certificate', url: finalSubmission.certificateUrl },
+              { label: 'Final Project Report', url: finalSubmission.finalReportUrl, icon: '📑' },
+              { label: 'Capstone Presentation', url: finalSubmission.presentationUrl, icon: '📊' },
+              { label: 'Company Certificate of Completion', url: finalSubmission.certificateUrl, icon: '🏆' },
             ].filter(d => d.url).map(d => (
-              <a key={d.label} href={d.url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition-colors group">
-                <span className="text-xl">📎</span>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{d.label}</span>
-                <span className="ml-auto text-indigo-400 text-sm">View →</span>
+              <a
+                key={d.label}
+                href={d.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '1rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.85rem',
+                  textDecoration: 'none',
+                  background: '#f9fafb',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span style={{ fontSize: '1.5rem' }}>{d.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#111827', margin: 0 }}>{d.label}</p>
+                  <p style={{ fontSize: '0.75rem', color: '#4f46e5', margin: '0.2rem 0 0 0', fontWeight: 600 }}>Open Document ↗</p>
+                </div>
               </a>
             ))}
             {!finalSubmission.finalReportUrl && !finalSubmission.presentationUrl && !finalSubmission.certificateUrl && (
-              <p className="text-gray-400 text-sm">No documents uploaded yet.</p>
+              <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>No verified documents attached yet.</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Mentor Info */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-        <h2 className="font-bold text-gray-900 text-lg mb-4">👥 Mentors</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">College Mentor</p>
-            <p className="font-medium text-gray-900">{internshipRecord.collegeMentorId?.name || 'Not assigned'}</p>
-            <p className="text-sm text-gray-500">{internshipRecord.collegeMentorId?.email || ''}</p>
+      {/* Mentors in Charge */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '1.25rem',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        padding: '1.75rem'
+      }}>
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#111827', margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>👥</span> Assigned Advisory Committee
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '1rem 1.25rem', border: '1px solid #f3f4f6' }}>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 700 }}>
+              College Faculty Mentor
+            </p>
+            <p style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.2rem 0' }}>
+              {internshipRecord.collegeMentorId?.name || 'Prof. Faculty Mentor'}
+            </p>
+            <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
+              {internshipRecord.collegeMentorId?.email || 'mentor@college.edu.in'}
+            </p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Company Mentor</p>
-            <p className="font-medium text-gray-900">{internshipRecord.companyMentorId?.name || 'Not assigned'}</p>
-            <p className="text-sm text-gray-500">{internshipRecord.companyMentorId?.email || ''}</p>
+
+          <div style={{ background: '#f9fafb', borderRadius: '0.85rem', padding: '1rem 1.25rem', border: '1px solid #f3f4f6' }}>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.35rem 0', fontWeight: 700 }}>
+              Company Technical Mentor
+            </p>
+            <p style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.2rem 0' }}>
+              {internshipRecord.companyMentorId?.name || 'Industry Mentor'}
+            </p>
+            <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
+              {internshipRecord.companyMentorId?.email || 'mentor@company.com'}
+            </p>
           </div>
         </div>
       </div>

@@ -23,6 +23,8 @@ import InternshipDetail from './pages/student/InternshipDetail';
 import ApplicationTracker from './pages/student/ApplicationTracker';
 import PreparationHub from './pages/student/PreparationHub';
 import ProfilePage from './pages/student/ProfilePage';
+import MyInternshipPage from './pages/student/MyInternshipPage';
+import FinalSubmissionPage from './pages/student/FinalSubmissionPage';
 
 // Interview pages
 import InterviewList from './pages/interviews/InterviewList';
@@ -33,12 +35,25 @@ import InterviewWorkspace from './pages/interviews/InterviewWorkspace';
 import RecruiterInternships from './pages/recruiter/RecruiterInternships';
 import InternshipForm from './pages/recruiter/InternshipForm';
 import RecruiterApplications from './pages/recruiter/RecruiterApplications';
+import ManageOffersPage from './pages/recruiter/ManageOffersPage';
 
-// Placeholder for Batch 2 pages
+// TPO pages
+import MonitoringPage from './pages/tpo/MonitoringPage';
+import ApprovalCenterPage from './pages/tpo/ApprovalCenterPage';
+import CompletionReviewPage from './pages/tpo/CompletionReviewPage';
+
+// College Mentor pages
+import MyStudentsPage from './pages/college/MyStudentsPage';
+
+// Company Mentor pages
+import MyInternsPage from './pages/company/MyInternsPage';
+import FinalEvaluationPage from './pages/company/FinalEvaluationPage';
+
+// Simple placeholder for unimplemented routes
 const Placeholder = ({ title }) => (
   <div className="card" style={{ textAlign: 'center', padding: 60 }}>
     <h2 style={{ color: '#64748b', fontSize: '1.2rem' }}>{title}</h2>
-    <p style={{ color: '#94a3b8', marginTop: 8 }}>This feature will be available in the next batch.</p>
+    <p style={{ color: '#94a3b8', marginTop: 8 }}>Coming soon.</p>
   </div>
 );
 
@@ -74,8 +89,10 @@ export default function App() {
               <Route path="/applications" element={<ApplicationTracker />} />
               <Route path="/preparation" element={<PreparationHub />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/my-internship" element={<MyInternshipPage />} />
+              <Route path="/final-submission" element={<FinalSubmissionPage />} />
 
-              {/* Interview routes (shared student + recruiter) */}
+              {/* Interview routes */}
               <Route path="/interviews" element={<InterviewList />} />
               <Route path="/interviews/:id" element={<InterviewDetail />} />
 
@@ -83,22 +100,26 @@ export default function App() {
               <Route path="/my-internships" element={<RecruiterInternships />} />
               <Route path="/my-internships/new" element={<InternshipForm />} />
               <Route path="/my-internships/:id/edit" element={<InternshipForm />} />
+              <Route path="/offers" element={<ManageOffersPage />} />
 
-              {/* Batch 2 placeholder routes */}
-              <Route path="/my-internship" element={<Placeholder title="My Internship — Coming in Batch 2" />} />
-              <Route path="/final-submission" element={<Placeholder title="Final Submission — Coming in Batch 2" />} />
-              <Route path="/internship-record" element={<Placeholder title="Internship Record — Coming in Batch 2" />} />
-              <Route path="/approvals" element={<Placeholder title="Approvals / NOC — Coming in Batch 2" />} />
-              <Route path="/monitoring" element={<Placeholder title="Internship Monitoring — Coming in Batch 2" />} />
-              <Route path="/completion" element={<Placeholder title="Completion Review — Coming in Batch 2" />} />
-              <Route path="/students" element={<Placeholder title="Student Management — Coming in Batch 2" />} />
+              {/* TPO routes */}
+              <Route path="/approvals" element={<ApprovalCenterPage />} />
+              <Route path="/monitoring" element={<MonitoringPage />} />
+              <Route path="/completion" element={<CompletionReviewPage />} />
+
+              {/* College Mentor routes */}
+              <Route path="/my-students" element={<MyStudentsPage />} />
+
+              {/* Company Mentor routes */}
+              <Route path="/my-interns" element={<MyInternsPage />} />
+              <Route path="/evaluations" element={<FinalEvaluationPage />} />
+
+              {/* Generic placeholders */}
+              <Route path="/internship-record" element={<Placeholder title="Internship Record" />} />
+              <Route path="/students" element={<Placeholder title="Student Management" />} />
               <Route path="/companies" element={<Placeholder title="Company Management" />} />
-              <Route path="/my-students" element={<Placeholder title="My Students — Coming in Batch 2" />} />
-              <Route path="/final-review" element={<Placeholder title="Final Review — Coming in Batch 2" />} />
-              <Route path="/my-interns" element={<Placeholder title="My Interns — Coming in Batch 2" />} />
-              <Route path="/reports" element={<Placeholder title="Reports — Coming in Batch 2" />} />
-              <Route path="/evaluations" element={<Placeholder title="Evaluations — Coming in Batch 2" />} />
-              <Route path="/offers" element={<Placeholder title="Offers — Coming in Batch 2" />} />
+              <Route path="/final-review" element={<Placeholder title="Final Review" />} />
+              <Route path="/reports" element={<Placeholder title="Reports" />} />
             </Route>
           </Route>
 

@@ -1,0 +1,1627 @@
+You are the lead full-stack engineer responsible for building a hackathon-ready Smart Internship Management and Monitoring System.
+
+I have provided 7 Markdown specification files in this project.
+
+BEFORE WRITING CODE, READ AND UNDERSTAND ALL 7 FILES:
+
+1. PROJECT_CONTEXT.md
+2. SRS.md
+3. DESIGN.md
+4. ARCHITECTURE.md
+5. DATABASE.md
+6. API_SPEC.md
+7. IMPLEMENTATION_PLAN.md
+
+These 7 files are the SINGLE SOURCE OF TRUTH for the project.
+
+Do not invent unnecessary features, roles, database entities, workflows, screens, or architecture that are not supported by these documents.
+
+If something is not clearly specified, choose the simplest implementation that fits the existing architecture and hackathon scope.
+
+============================================================
+1. PROJECT OBJECTIVE
+============================================================
+
+Build a complete full-stack Smart Internship Management and Monitoring System that manages the complete internship lifecycle:
+
+ACQUISITION
+    ↓
+EXECUTION
+    ↓
+COMPLETION
+
+The application should be a real working system with frontend, backend, database, authentication, role-based access, APIs, workflows, and integrations.
+
+This is a HACKATHON project.
+
+Therefore:
+
+- Prioritize core functionality.
+- Keep the architecture simple.
+- Avoid over-engineering.
+- Avoid microservices.
+- Avoid unnecessary abstractions.
+- Avoid unnecessary libraries.
+- Avoid unnecessary features.
+- Focus on a polished and demonstrable MVP.
+- Make the important workflows actually work.
+
+============================================================
+2. TECHNOLOGY STACK
+============================================================
+
+Frontend:
+
+- React
+- Vite
+- Tailwind CSS
+
+Backend:
+
+- Node.js
+- Express.js
+
+Database:
+
+- MongoDB Atlas
+
+ORM/Data Layer:
+
+- Prisma ONLY if MongoDB compatibility is properly validated.
+- If Prisma causes compatibility problems, use an appropriate MongoDB approach instead of forcing Prisma.
+
+Authentication:
+
+- JWT
+- bcrypt
+
+File Storage:
+
+- Cloudinary
+
+Video Interview:
+
+- ZEGO Cloud
+
+AI:
+
+- Server-side AI API integration for the Confidentiality Guard.
+
+Deployment target:
+
+Frontend:
+- Vercel
+
+Backend:
+- Render
+
+Database:
+- MongoDB Atlas
+
+File storage:
+- Cloudinary
+
+Video:
+- ZEGO Cloud
+
+============================================================
+3. ARCHITECTURE
+============================================================
+
+Use a simple modular monolith.
+
+Architecture:
+
+Users
+  ↓
+React / Vite / Tailwind
+  ↓
+HTTPS REST API
+  ↓
+Node.js / Express
+  ↓
+Data Layer
+  ↓
+MongoDB Atlas
+
+External integrations:
+
+Backend → Cloudinary
+Backend → AI API
+Frontend ↔ ZEGO Cloud
+Backend → ZEGO room/authentication/status handling where required
+
+Do NOT build microservices.
+
+Do NOT introduce Kubernetes, Docker orchestration, message queues, Redis, or other infrastructure unless absolutely required by the specifications.
+
+Keep the system hackathon-friendly.
+
+============================================================
+4. FIVE USER ROLES
+============================================================
+
+The system has exactly these primary roles:
+
+1. STUDENT
+2. TPO_ADMIN
+3. COLLEGE_MENTOR
+4. RECRUITER
+5. COMPANY_MENTOR
+
+Keep RECRUITER and COMPANY_MENTOR as separate roles.
+
+------------------------------------------------------------
+STUDENT
+------------------------------------------------------------
+
+Student can:
+
+- Create/manage profile
+- Discover internships
+- Check eligibility
+- Prepare for interviews
+- Apply
+- Track applications
+- Attend interviews
+- View selection/offer
+- Submit internship reports
+- Track internship progress
+- Revise reports if required
+- Submit final internship work
+- View evaluation/result
+- View digital internship record
+
+------------------------------------------------------------
+TPO / ADMIN
+------------------------------------------------------------
+
+TPO/Admin can:
+
+- Manage institution-level internship information
+- Manage students
+- Manage companies
+- Approve internship/offer workflows where required
+- Generate/manage NOC
+- Assign mentors
+- Monitor active internships
+- Monitor reports and progress
+- View early-warning indicators
+- Review completion
+- Approve completion
+- Maintain institutional records
+
+------------------------------------------------------------
+COLLEGE MENTOR
+------------------------------------------------------------
+
+College Mentor can:
+
+- View assigned students
+- Monitor student internship progress
+- View verified reports
+- Provide academic/institutional feedback
+- Participate in final review
+- Provide final recommendation
+
+------------------------------------------------------------
+COMPANY RECRUITER
+------------------------------------------------------------
+
+Recruiter handles acquisition:
+
+- Create internship opportunities
+- Edit internship opportunities
+- View applications
+- Shortlist candidates
+- Schedule interviews
+- Manage interview process
+- Select candidates
+- Issue offers
+
+------------------------------------------------------------
+COMPANY MENTOR
+------------------------------------------------------------
+
+Company Mentor handles execution/completion:
+
+- View assigned interns
+- Define internship plan
+- Define/update milestones
+- Review weekly reports
+- Verify reports
+- Request revisions
+- Track progress
+- Provide final evaluation
+
+============================================================
+5. PRIVACY PRINCIPLE
+============================================================
+
+VERY IMPORTANT:
+
+The college should monitor internship PARTICIPATION, COMPLIANCE and PROGRESS.
+
+The college should NOT require or monitor confidential company work.
+
+Do NOT require:
+
+- Source code
+- Company internal documents
+- Client information
+- Internal Jira/Trello data
+- Credentials
+- API keys
+- Passwords
+- Proprietary project specifications
+- Confidential screenshots
+- Internal company systems
+
+Weekly reports should focus on safe high-level information such as:
+
+- What the student worked on
+- Skills used
+- What the student learned
+- Challenges
+- Achievements
+- Next week's goals
+- Attendance
+- Progress
+
+============================================================
+6. CORE PRODUCT USP
+============================================================
+
+There are two important differentiating features.
+
+USP 1:
+
+INTEGRATED INTERVIEW WORKSPACE
+
+Students and interviewers should be able to conduct interviews inside the platform using ZEGO Cloud.
+
+Minimum functionality:
+
+- Video
+- Audio
+- Participants
+- Join/leave
+- Interview details
+- Basic interviewer notes/evaluation
+
+Do NOT build video infrastructure from scratch.
+
+Do NOT add:
+
+- Recording
+- Facial analysis
+- Cheating detection
+- AI interviewer
+- Complex chat system
+
+Verify the current ZEGO integration/API before implementation.
+
+------------------------------------------------------------
+
+USP 2:
+
+AI CONFIDENTIALITY GUARD
+
+The system checks student weekly reports for potentially confidential information before the report is shared through the internship monitoring workflow.
+
+Possible categories:
+
+- API keys
+- Passwords
+- Tokens
+- Customer/personal information
+- Financial/transaction information
+- Internal URLs/endpoints
+- Source code snippets
+- Internal project/product details
+- Confidential/NDA references
+
+The AI should return structured information such as:
+
+riskLevel:
+- SAFE
+- LOW
+- MEDIUM
+- HIGH
+
+And:
+
+- flaggedCategories
+- flaggedItems
+- suggestion
+
+IMPORTANT:
+
+AI only FLAGS potential confidentiality problems.
+
+AI must NOT make the final human decision.
+
+The student should be able to edit the report and resubmit.
+
+The backend should handle the AI integration.
+
+NEVER expose AI API keys in the frontend.
+
+If the AI service is unavailable:
+
+- Handle the failure gracefully.
+- Do not falsely claim that the report was successfully checked.
+- Keep the integration modular so the service can be configured later.
+
+============================================================
+7. DATABASE ENTITIES
+============================================================
+
+Use the database design from DATABASE.md.
+
+Core entities:
+
+1. users
+2. student_profiles
+3. companies
+4. internships
+5. applications
+6. interviews
+7. offers
+8. approvals
+9. internship_records
+10. milestones
+11. weekly_reports
+12. report_reviews
+13. confidentiality_checks
+14. final_submissions
+15. evaluations
+16. internship_outcomes
+
+Do NOT create unnecessary collections.
+
+Attendance does NOT need a separate collection.
+
+Attendance can be represented inside weekly_reports.
+
+Learning Journey can be derived from skills used in weekly reports.
+
+============================================================
+8. ACQUISITION WORKFLOW
+============================================================
+
+Implement this flow:
+
+Discover
+  ↓
+Eligibility
+  ↓
+Prepare
+  ↓
+Apply
+  ↓
+Interview
+  ↓
+Selected
+  ↓
+Offer
+  ↓
+College Verification
+  ↓
+NOC
+  ↓
+Execution
+
+------------------------------------------------------------
+DISCOVER
+------------------------------------------------------------
+
+Student should be able to:
+
+- Browse internships
+- Search
+- Filter
+- View company
+- View role
+- View location
+- View stipend
+- View deadline
+- View eligibility
+- View skills required
+
+------------------------------------------------------------
+ELIGIBILITY
+------------------------------------------------------------
+
+Automatically compare internship eligibility with student profile where appropriate.
+
+Keep the eligibility logic simple.
+
+------------------------------------------------------------
+PREPARE
+------------------------------------------------------------
+
+Preparation Hub should include:
+
+- Technical interview questions
+- HR questions
+- Previous interview experiences
+- Preparation topics
+- Useful preparation resources
+
+Do not create a separate unnecessary FAQ system.
+
+------------------------------------------------------------
+APPLY
+------------------------------------------------------------
+
+Student:
+
+- View internship
+- Apply
+- Track application
+
+Application statuses:
+
+APPLIED
+→ SHORTLISTED
+→ INTERVIEW
+→ SELECTED
+→ OFFERED
+
+Also support rejection where required.
+
+------------------------------------------------------------
+INTERVIEW
+------------------------------------------------------------
+
+Recruiter:
+
+- Schedule interview
+- Select round
+- Set date/time
+- Create/manage interview room
+
+Student:
+
+- View interview
+- Join interview workspace
+
+Recruiter/interviewer:
+
+- Join interview
+- Add basic notes/evaluation
+
+============================================================
+9. EXECUTION WORKFLOW
+============================================================
+
+Internship starts:
+
+Internship Plan
+  ↓
+Milestones
+  ↓
+Weekly Report
+  ↓
+AI Confidentiality Check
+  ↓
+Mentor Verification
+  ↓
+Progress Monitoring
+  ↓
+TPO Dashboard
+  ↓
+Early Warning
+  ↓
+Faculty Action/Follow-up
+
+------------------------------------------------------------
+INTERNSHIP PLAN
+------------------------------------------------------------
+
+Company Mentor can define:
+
+- Internship goals
+- Milestones
+- Due dates
+- Progress
+
+------------------------------------------------------------
+WEEKLY REPORT
+------------------------------------------------------------
+
+Student submits:
+
+- Work summary
+- Skills used
+- Learning outcomes
+- Challenges
+- Achievements
+- Next week goals
+- Attendance
+- Progress
+
+Statuses:
+
+DRAFT
+SUBMITTED
+REVISION_REQUIRED
+VERIFIED
+
+------------------------------------------------------------
+MENTOR VERIFICATION
+------------------------------------------------------------
+
+Company Mentor:
+
+- Verify
+- Request revision
+- Add optional comment
+
+------------------------------------------------------------
+PROGRESS
+------------------------------------------------------------
+
+Track milestone progress and overall internship progress.
+
+Prefer deriving overall progress from milestone progress where practical.
+
+============================================================
+10. EARLY WARNING SYSTEM
+============================================================
+
+Early warning should use deterministic rules.
+
+Signals include:
+
+- Weekly report overdue
+- Weekly report missed
+- Mentor verification pending
+- Attendance falling
+- Milestone progress falling
+- Repeated report revisions
+- Internship nearing end without required reports
+
+Statuses:
+
+ON_TRACK
+NEEDS_ATTENTION
+AT_RISK
+
+These are SYSTEM INDICATORS.
+
+Do not make AI judgments about student performance.
+
+TPO decides what action should be taken.
+
+============================================================
+11. COMPLETION WORKFLOW
+============================================================
+
+Final workflow:
+
+Final Submission
+  ↓
+Company Mentor Evaluation
+  ↓
+College Mentor Review
+  ↓
+TPO Approval
+  ↓
+Internship Completed
+  ↓
+Digital Internship Record
+  ↓
+PPO / Outcome
+
+------------------------------------------------------------
+FINAL SUBMISSION
+------------------------------------------------------------
+
+Student submits:
+
+- Final internship report
+- Final presentation/PPT
+- Project summary
+- Skills learned
+- Certificate
+
+------------------------------------------------------------
+COMPANY MENTOR EVALUATION
+------------------------------------------------------------
+
+Evaluation areas:
+
+- Participation
+- Professionalism
+- Technical learning
+- Communication
+- Overall internship completion
+- Feedback
+
+------------------------------------------------------------
+COLLEGE REVIEW
+------------------------------------------------------------
+
+College Mentor reviews and recommends.
+
+------------------------------------------------------------
+TPO APPROVAL
+------------------------------------------------------------
+
+TPO can:
+
+- Approve
+- Request correction
+- Mark completed
+
+------------------------------------------------------------
+DIGITAL RECORD
+------------------------------------------------------------
+
+Store:
+
+- Company
+- Role
+- Duration
+- Skills
+- Status
+- Certificate
+
+Optional:
+
+- QR verification
+
+------------------------------------------------------------
+OUTCOMES
+------------------------------------------------------------
+
+Support:
+
+- COMPLETED
+- PPO
+- EXTENDED
+- NO_OFFER
+
+============================================================
+12. IMPORTANT SCREENS
+============================================================
+
+Do not create unnecessary pages.
+
+Use reusable components, modals and drawers where appropriate.
+
+------------------------------------------------------------
+STUDENT
+------------------------------------------------------------
+
+- Login/Register
+- Dashboard
+- Profile
+- Internship Marketplace
+- Internship Details
+- Application Tracker
+- Preparation Hub
+- Interview Details
+- Interview Workspace
+- My Internship
+- Weekly Report / Report History
+- Final Submission
+- Internship Record
+
+------------------------------------------------------------
+TPO
+------------------------------------------------------------
+
+- Dashboard
+- Students
+- Companies
+- Internships
+- Approval Center / NOC
+- Internship Monitoring
+- Completion Review
+
+------------------------------------------------------------
+COLLEGE MENTOR
+------------------------------------------------------------
+
+- Dashboard
+- My Students
+- Student/Internship Detail
+- Final Review
+
+------------------------------------------------------------
+RECRUITER
+------------------------------------------------------------
+
+- Dashboard
+- My Internships
+- Create/Edit Internship
+- Applications
+- Candidate Detail
+- Interview Management
+- Interview Workspace
+- Selection/Offer
+
+------------------------------------------------------------
+COMPANY MENTOR
+------------------------------------------------------------
+
+- Dashboard
+- My Interns
+- Internship Detail
+- Weekly Report Review
+- Final Evaluation
+
+============================================================
+13. BACKEND API STRUCTURE
+============================================================
+
+Use the API design from API_SPEC.md.
+
+Base path:
+
+/api
+
+Modules include:
+
+/api/auth
+/api/users
+/api/students
+/api/companies
+/api/internships
+/api/applications
+/api/interviews
+/api/offers
+/api/approvals
+/api/internship-records
+/api/milestones
+/api/weekly-reports
+/api/confidentiality
+/api/evaluations
+/api/final-submissions
+/api/outcomes
+
+Use:
+
+- Controllers
+- Services
+- Routes
+- Middleware
+- Validation
+- Error handling
+
+Keep API patterns consistent.
+
+Do not duplicate logic.
+
+============================================================
+14. SECURITY
+============================================================
+
+Security must be implemented from the beginning.
+
+Use:
+
+- bcrypt password hashing
+- JWT authentication
+- Backend RBAC
+- Resource ownership checks
+- Input validation
+- Environment variables
+- Secure file handling
+- Proper CORS
+- Proper API error handling
+
+VERY IMPORTANT:
+
+Do not rely only on frontend role checks.
+
+The backend MUST enforce permissions.
+
+For example:
+
+A student must not be able to call an admin endpoint simply by modifying frontend code.
+
+============================================================
+15. UI / UX
+============================================================
+
+Create a polished modern college/enterprise SaaS-style interface.
+
+Use:
+
+- Clean sidebar
+- Dashboard cards
+- Tables
+- Status badges
+- Forms
+- Modals
+- Drawers
+- Progress indicators
+- Responsive layouts
+- Good spacing
+- Consistent typography
+- Consistent component design
+- Loading states
+- Empty states
+- Error states
+- Form validation
+
+Each role should see only relevant navigation.
+
+The application should look like a real product, not a basic CRUD assignment.
+
+However:
+
+DO NOT spend excessive time on visual effects.
+
+Functionality > unnecessary animations.
+
+============================================================
+16. DEVELOPMENT STRATEGY
+============================================================
+
+THIS IS EXTREMELY IMPORTANT.
+
+Do NOT build the entire application in one shot.
+
+Do NOT test and commit after every tiny phase.
+
+AI credits are limited.
+
+Instead, work in BATCHES.
+
+The development strategy is:
+
+IMPLEMENT 3–4 RELATED PHASES
+        ↓
+TEST THE COMPLETE BATCH
+        ↓
+FIX IMPORTANT ISSUES
+        ↓
+CREATE ONE GIT COMMIT
+        ↓
+STOP
+        ↓
+WAIT FOR "CONTINUE"
+
+This reduces unnecessary repeated project analysis and testing.
+
+============================================================
+17. BATCH 1 — FOUNDATION + ACQUISITION
+============================================================
+
+Implement these phases together:
+
+PHASE 0 — PROJECT INITIALIZATION
+
+Set up:
+
+Frontend:
+- React
+- Vite
+- Tailwind
+- Routing
+- Basic reusable components
+
+Backend:
+- Node
+- Express
+- Environment configuration
+- API structure
+- Middleware
+- Error handling
+
+Database:
+- MongoDB connection
+- Prisma only if compatible
+
+Create clean structure such as:
+
+frontend/
+  src/
+    components/
+    pages/
+    layouts/
+    routes/
+    services/
+    hooks/
+    context/
+    utils/
+
+backend/
+  src/
+    controllers/
+    routes/
+    services/
+    middleware/
+    models/
+    utils/
+    config/
+
+Create README with setup instructions.
+
+------------------------------------------------------------
+
+PHASE 1 — AUTHENTICATION + RBAC
+
+Implement:
+
+- Registration/login where appropriate
+- JWT
+- bcrypt
+- Protected routes
+- Role-based authorization
+- User profile
+- Role-aware dashboards
+
+Roles:
+
+STUDENT
+TPO_ADMIN
+COLLEGE_MENTOR
+RECRUITER
+COMPANY_MENTOR
+
+Backend must enforce authorization.
+
+------------------------------------------------------------
+
+PHASE 2 — INTERNSHIP DISCOVERY + APPLICATIONS
+
+Implement:
+
+Student:
+
+- Internship marketplace
+- Search/filter
+- Internship details
+- Eligibility
+- Apply
+- Application tracker
+- Preparation Hub
+
+Recruiter:
+
+- Create internship
+- Edit internship
+- View applications
+- Shortlist candidates
+
+Application flow:
+
+APPLIED
+→ SHORTLISTED
+→ INTERVIEW
+→ SELECTED
+→ OFFERED
+
+------------------------------------------------------------
+
+PHASE 3 — INTERVIEW MANAGEMENT
+
+Implement:
+
+- Interview scheduling
+- Interview details
+- Interview rounds
+- Date/time
+- Room ID
+- Interview status
+- Interview workspace
+
+Integrate ZEGO Cloud where credentials/configuration are available.
+
+Do not build video infrastructure from scratch.
+
+Minimum interview workspace:
+
+- Video
+- Audio
+- Participants
+- Join/leave
+- Interview details
+- Basic notes
+
+============================================================
+BATCH 1 TESTING
+============================================================
+
+After Phases 0–3 are implemented:
+
+DO NOT immediately start Batch 2.
+
+First test the complete Batch 1.
+
+Test:
+
+1. Frontend starts.
+2. Backend starts.
+3. Database connects.
+4. User registration/login works.
+5. JWT protection works.
+6. RBAC works.
+7. Student can browse internships.
+8. Student can check eligibility.
+9. Student can apply.
+10. Recruiter can create internship.
+11. Recruiter can view applications.
+12. Recruiter can shortlist.
+13. Interview can be scheduled.
+14. Student can see interview.
+15. Interview workspace opens.
+16. Existing features still work together.
+
+Fix critical and obvious bugs.
+
+Do NOT spend excessive credits on minor cosmetic issues.
+
+Then create ONE commit:
+
+feat: implement foundation and acquisition workflow
+
+Then STOP.
+
+Report:
+
+- Features implemented
+- Important files changed
+- APIs created
+- Database changes
+- Testing performed
+- Known issues
+- Git commit created
+- What Batch 2 will implement
+
+DO NOT automatically continue.
+
+Wait for:
+
+CONTINUE
+
+============================================================
+18. BATCH 2 — OFFER + EXECUTION + MONITORING
+============================================================
+
+Only begin this batch after I explicitly say:
+
+CONTINUE
+
+Implement:
+
+PHASE 4 — OFFER + COLLEGE APPROVAL
+
+- Offer creation
+- Offer letter
+- Student offer view
+- College approval
+- Approval/rejection
+- NOC
+- Internship record
+- Internship activation
+
+Flow:
+
+Recruiter selects candidate
+→ Offer
+→ Student receives offer
+→ TPO verifies
+→ Approval
+→ NOC
+→ Internship record
+
+------------------------------------------------------------
+
+PHASE 5 — INTERNSHIP EXECUTION
+
+Implement:
+
+- Internship plan
+- Milestones
+- Weekly reports
+- Report history
+- Mentor verification
+- Revision workflow
+- Progress tracking
+
+Weekly report:
+
+- Work summary
+- Skills
+- Learning
+- Challenges
+- Achievements
+- Next week goals
+- Attendance
+- Progress
+
+Company Mentor:
+
+- Verify
+- Request revision
+- Comment
+
+------------------------------------------------------------
+
+PHASE 6 — AI CONFIDENTIALITY GUARD
+
+Implement:
+
+Student submits report
+→ Backend AI check
+→ Risk result
+→ Student sees warning
+→ Student edits if needed
+→ Mentor review
+
+Risk:
+
+SAFE
+LOW
+MEDIUM
+HIGH
+
+Categories:
+
+- API keys
+- Passwords
+- Tokens
+- Customer data
+- Personal data
+- Financial data
+- Internal URLs
+- Source code
+- Internal project details
+- NDA/confidentiality references
+
+Do not expose AI credentials.
+
+Do not fake AI success.
+
+------------------------------------------------------------
+
+PHASE 7 — MONITORING + EARLY WARNING
+
+Implement TPO monitoring dashboard:
+
+- Active internships
+- Reports due
+- Reports overdue
+- Mentor verification pending
+- Attendance
+- Milestone progress
+- Students needing attention
+- Internship end dates
+
+Early warning:
+
+ON_TRACK
+NEEDS_ATTENTION
+AT_RISK
+
+Use deterministic rules.
+
+============================================================
+BATCH 2 TESTING
+============================================================
+
+After Phases 4–7:
+
+Test the complete execution flow:
+
+Offer
+→ College Approval
+→ NOC
+→ Internship Start
+→ Plan
+→ Milestones
+→ Weekly Report
+→ AI Check
+→ Mentor Verification
+→ Progress
+→ TPO Monitoring
+→ Early Warning
+
+Also test:
+
+- Role permissions
+- API errors
+- Database operations
+- Revision workflow
+- AI failure handling
+- Existing acquisition functionality
+
+Fix critical bugs.
+
+Then create ONE commit:
+
+feat: implement internship execution and monitoring
+
+Then STOP.
+
+Report:
+
+- Features implemented
+- Important files changed
+- APIs created
+- Database changes
+- Testing performed
+- Known issues
+- Commit created
+- Batch 3 plan
+
+Wait for:
+
+CONTINUE
+
+============================================================
+19. BATCH 3 — COMPLETION + OPTIONAL FEATURES + DEPLOYMENT
+============================================================
+
+Only begin after I explicitly say:
+
+CONTINUE
+
+Implement:
+
+PHASE 8 — COMPLETION
+
+Student:
+
+- Final report
+- Final presentation
+- Project summary
+- Skills learned
+- Certificate
+- Final submission
+
+Company Mentor:
+
+- Final evaluation
+
+College Mentor:
+
+- Final review/recommendation
+
+TPO:
+
+- Final approval
+- Completion
+
+Digital record:
+
+- Company
+- Role
+- Duration
+- Skills
+- Certificate
+- Completion status
+
+Outcome:
+
+- COMPLETED
+- PPO
+- EXTENDED
+- NO_OFFER
+
+------------------------------------------------------------
+
+PHASE 9 — OPTIONAL FEATURES
+
+ONLY if the core application is stable.
+
+Optional:
+
+- Better attendance visualization
+- Learning journey visualization
+- QR verification
+- Additional analytics
+- UI polish
+
+Do NOT allow optional features to delay or break core functionality.
+
+------------------------------------------------------------
+
+PHASE 10 — FINAL HARDENING + DEPLOYMENT
+
+Check:
+
+- Authentication
+- RBAC
+- Resource ownership
+- Input validation
+- Error handling
+- File upload
+- Environment variables
+- API security
+- AI API security
+- Database indexes
+- Loading states
+- Empty states
+- Error states
+- Responsive UI
+- Production build
+
+Prepare deployment:
+
+Frontend → Vercel
+Backend → Render
+Database → MongoDB Atlas
+Files → Cloudinary
+Video → ZEGO Cloud
+AI → AI provider
+
+============================================================
+BATCH 3 TESTING
+============================================================
+
+Run complete end-to-end testing.
+
+Test all five roles.
+
+Test:
+
+STUDENT
+→ discovers internship
+→ checks eligibility
+→ applies
+→ interview
+→ selected
+→ offer
+→ college approval
+→ NOC
+→ internship
+→ weekly report
+→ confidentiality check
+→ mentor verification
+→ progress
+→ final submission
+→ evaluation
+→ completion
+→ digital record
+
+Also test recruiter, company mentor, college mentor and TPO workflows.
+
+Fix critical issues.
+
+Then create ONE final commit:
+
+chore: prepare production deployment
+
+STOP.
+
+============================================================
+20. GIT RULES
+============================================================
+
+Do NOT create a commit after every phase.
+
+Use only these major checkpoints:
+
+CHECKPOINT 1:
+
+feat: implement foundation and acquisition workflow
+
+Contains:
+
+Phase 0
+Phase 1
+Phase 2
+Phase 3
+
+------------------------------------------------------------
+
+CHECKPOINT 2:
+
+feat: implement internship execution and monitoring
+
+Contains:
+
+Phase 4
+Phase 5
+Phase 6
+Phase 7
+
+------------------------------------------------------------
+
+CHECKPOINT 3:
+
+chore: prepare production deployment
+
+Contains:
+
+Phase 8
+Phase 9
+Phase 10
+
+Do NOT create fake commits.
+
+Do NOT create commits claiming functionality is complete when it is not.
+
+============================================================
+21. CREDIT-EFFICIENCY RULES
+============================================================
+
+AI credits are limited.
+
+Optimize the workflow.
+
+Avoid:
+
+- Re-reading all 7 MD files unnecessarily
+- Re-analyzing the entire project after every small change
+- Rebuilding existing features
+- Repeated testing after every tiny feature
+- Unnecessary refactoring
+- Duplicate components
+- Duplicate APIs
+- Duplicate services
+- Unnecessary libraries
+- Over-engineering
+- Unnecessary animations
+- Unnecessary pages
+
+Prefer:
+
+- Batch implementation
+- Reusable components
+- Reusable services
+- Reusable API patterns
+- Batch testing
+- Batch bug fixing
+- Simple architecture
+- Minimal dependencies
+- Working MVP
+
+Once you have read the 7 specification files, retain their requirements throughout the implementation and refer back only when necessary.
+
+============================================================
+22. CODE QUALITY RULES
+============================================================
+
+Write maintainable code.
+
+Use meaningful names.
+
+Avoid giant components where practical.
+
+Separate:
+
+- UI
+- API calls
+- business logic
+- database logic
+- authentication
+- authorization
+
+Handle:
+
+- Loading
+- Success
+- Error
+- Empty states
+
+Do not silently swallow errors.
+
+Do not use hardcoded secrets.
+
+Use .env files.
+
+Provide .env.example where appropriate.
+
+============================================================
+23. HACKATHON PRIORITY
+============================================================
+
+The following features are MUST-WORK:
+
+ACQUISITION:
+
+- Internship discovery
+- Eligibility
+- Preparation
+- Application tracker
+- Interview scheduling/workspace
+- Selection
+- Offer
+- College approval
+- NOC
+
+EXECUTION:
+
+- Internship plan
+- Milestones
+- Weekly reports
+- AI confidentiality guard
+- Mentor verification
+- Progress tracking
+- TPO monitoring
+- Early warning
+
+COMPLETION:
+
+- Final submission
+- Mentor evaluation
+- College review
+- TPO approval
+- Digital internship record
+
+Optional features should NEVER compromise these core features.
+
+============================================================
+24. FINAL DEVELOPMENT RULE
+============================================================
+
+The most important rule:
+
+DO NOT BUILD EVERYTHING AT ONCE.
+
+Work in exactly these three major batches:
+
+BATCH 1:
+Phase 0 + Phase 1 + Phase 2 + Phase 3
+→ TEST
+→ FIX
+→ COMMIT
+→ STOP
+
+BATCH 2:
+Phase 4 + Phase 5 + Phase 6 + Phase 7
+→ TEST
+→ FIX
+→ COMMIT
+→ STOP
+
+BATCH 3:
+Phase 8 + Phase 9 + Phase 10
+→ FINAL TEST
+→ FIX
+→ COMMIT
+→ STOP
+Commit after each Phase but Testing after each Batch
+And tell when to commit
+After each batch, wait for my explicit:
+
+CONTINUE
+
+Do not automatically proceed.
+
+============================================================
+25. START NOW
+============================================================
+
+START WITH BATCH 1 ONLY.
+
+Before coding:
+
+1. Read all 7 Markdown files.
+2. Inspect the current project directory.
+3. Understand the existing code if any exists.
+4. Briefly summarize your understanding of the architecture.
+5. Identify any critical compatibility issue.
+6. Start implementing:
+
+Phase 0
+Phase 1
+Phase 2
+Phase 3
+
+Do NOT implement Phase 4 or anything from Batch 2.
+
+After Batch 1:
+
+- Test it
+- Fix important issues
+- Create the Git commit:
+
+feat: implement foundation and acquisition workflow
+
+- Report what was done
+- STOP
+
+Wait for my message:
+
+CONTINUE
+where u want my explicit reply tell what do u expect if correct 
